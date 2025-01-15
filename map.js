@@ -29,10 +29,11 @@ function addMarkers(locations) {
 // Function to add a single marker
 function addSingleMarker(location) {
     markersLayer.clearLayers();
-    
+
     if (location.Latitude && location.Longitude) {
-        const marker = L.marker([location.Latitude, location.Longitude], {icon: customIcon})
-            .bindPopup(`
+        let popupContent = '';
+        if(currentDataType === 'towns') {
+             popupContent = `
                 <div style="min-width: 200px;">
                     <h3 style="margin: 0 0 8px 0; color: #2c3e50;">${location.Town_Name_Eng}</h3>
                     <p style="margin: 0 0 5px 0;"><strong>Myanmar Name:</strong> ${location.Town_Name_MMR}</p>
@@ -40,7 +41,32 @@ function addSingleMarker(location) {
                     <p style="margin: 0 0 5px 0;"><strong>District:</strong> ${location['District/SAZ_Name_Eng']}</p>
                     <p style="margin: 0;"><strong>State/Region:</strong> ${location.SR_Name_Eng}</p>
                 </div>
-            `, {
+            `;
+        }
+         else if (currentDataType === 'wards') {
+              popupContent = `
+                <div style="min-width: 200px;">
+                    <h3 style="margin: 0 0 8px 0; color: #2c3e50;">${location.Ward_Name_Eng}</h3>
+                    <p style="margin: 0 0 5px 0;"><strong>Myanmar Name:</strong> ${location.Ward_Name_MMR}</p>
+                    <p style="margin: 0 0 5px 0;"><strong>Township:</strong> ${location.Township_Name_Eng}</p>
+                    <p style="margin: 0 0 5px 0;"><strong>District:</strong> ${location['District/SAZ_Name_Eng']}</p>
+                    <p style="margin: 0;"><strong>State/Region:</strong> ${location.SR_Name_Eng}</p>
+                </div>
+            `;
+         } else if (currentDataType === 'villageTracts') {
+                popupContent = `
+                    <div style="min-width: 200px;">
+                        <h3 style="margin: 0 0 8px 0; color: #2c3e50;">${location.Village_Tract_Name_Eng}</h3>
+                        <p style="margin: 0 0 5px 0;"><strong>Myanmar Name:</strong> ${location.Village_Tract_Name_MMR}</p>
+                        <p style="margin: 0 0 5px 0;"><strong>Township:</strong> ${location.Township_Name_Eng}</p>
+                        <p style="margin: 0 0 5px 0;"><strong>District:</strong> ${location['District/SAZ_Name_Eng']}</p>
+                        <p style="margin: 0;"><strong>State/Region:</strong> ${location.SR_Name_Eng}</p>
+                    </div>
+                `;
+         }
+
+        const marker = L.marker([location.Latitude, location.Longitude], {icon: customIcon})
+            .bindPopup(popupContent, {
                 maxWidth: 300
             });
         markersLayer.addLayer(marker);
