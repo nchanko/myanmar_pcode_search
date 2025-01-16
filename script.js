@@ -296,7 +296,7 @@ function showResult(match) {
                     </div>
                      <div class="result-item">
                        <strong>Coordinates:</strong><br>
-                        Lat: ${match.Latitude || 'N/A'}, Long: ${match.Longitude || 'N/A'}
+                        ${match.Latitude || 'N/A'}, ${match.Longitude || 'N/A'}
                     </div>
                      `;
 
