@@ -3,6 +3,8 @@ let pcodeData = {
     wards: [],
     villageTracts: []
 };
+let postalData = [];
+let postalLookup = new Map();
 let filteredData = [];
 const searchInput = document.querySelector('.search-input');
 const suggestionsContainer = document.querySelector('.suggestions');
@@ -114,44 +116,86 @@ async function loadCSVData(file, dataType) {
     }
 }
 
-function searchPcodes(query) {
-        query = query.toLowerCase();
-        let currentData = pcodeData[currentDataType];
-        if (searchByPcode) {
-            return currentData.filter(item => {
-                let pcode = null;
-                    if (currentDataType === 'towns')
-                        pcode = item.Town_Pcode || item.Tsp_Pcode || item['District/SAZ_Pcode'] || item.SR_Pcode;
-                    else if (currentDataType === 'wards')
-                        pcode = item.Ward_Pcode || item.Tsp_Pcode || item['District/SAZ_Pcode'] || item.SR_Pcode;
-                    else if (currentDataType === 'villageTracts')
-                        pcode= item.VT_Pcode || item.Tsp_Pcode || item['District/SAZ_Pcode'] || item.SR_Pcode;
-
-                return pcode?.toLowerCase().includes(query);
-                }).slice(0, 10);
-
-        } else {
-            return currentData.filter(item => {
-            let nameEng = null;
-            let nameMMR = null;
-
-                if (currentDataType === 'towns') {
-                nameEng = item.Town_Name_Eng;
-                nameMMR = item.Town_Name_MMR;
-            } else if (currentDataType === 'wards') {
-                    nameEng = item.Ward_Name_Eng;
-                    nameMMR = item.Ward_Name_MMR;
-            } else if (currentDataType === 'villageTracts') {
-                    nameEng = item.Village_Tract_Name_Eng;
-                    nameMMR = item.Village_Tract_Name_MMR;
-            }
-            return (
-                (nameEng && nameEng.toLowerCase().includes(query)) ||
-                (nameMMR && nameMMR.toLowerCase().includes(query))
-            );
-        }).slice(0, 10);
-        }
+async function loadPostalData(file) {
+  try {
+    const response = await fetch(file);
+    const csvText = await response.text();
+    Papa.parse(csvText, {
+      header: true,
+      complete: function(results) {
+        postalData = results.data;
+        createPostalLookup();
+        console.log('Postal data loaded:', postalData.length, 'records');
+      }
+    });
+  } catch (error) {
+    console.error('Error loading postal data:', error);
+  }
 }
+
+
+function createPostalLookup() {
+    postalData.forEach(item => {
+    const pcode = item['VT_Pcode'] || item['Ward_Pcode'];
+        if (pcode) {
+            postalLookup.set(pcode, item);
+        }
+    });
+    console.log('Postal lookup created:', postalLookup.size, 'entries');
+}
+
+function searchPcodes(query) {
+    query = query.toLowerCase();
+    let currentData = pcodeData[currentDataType];
+
+    if (searchByPcode) {
+      return currentData.filter(item => {
+        let pcode = null;
+        if (currentDataType === 'towns')
+          pcode = item.Town_Pcode || item.Tsp_Pcode || item['District/SAZ_Pcode'] || item.SR_Pcode;
+        else if (currentDataType === 'wards')
+          pcode = item.Ward_Pcode || item.Tsp_Pcode || item['District/SAZ_Pcode'] || item.SR_Pcode;
+        else if (currentDataType === 'villageTracts')
+          pcode = item.VT_Pcode || item.Tsp_Pcode || item['District/SAZ_Pcode'] || item.SR_Pcode;
+
+        return pcode?.toLowerCase().includes(query);
+      }).slice(0, 20);
+
+    } else {
+      const scoredMatches = currentData.map(item => {
+        let nameEng = null;
+        let nameMMR = null;
+
+        if (currentDataType === 'towns') {
+          nameEng = item.Town_Name_Eng;
+          nameMMR = item.Town_Name_MMR;
+        } else if (currentDataType === 'wards') {
+          nameEng = item.Ward_Name_Eng;
+          nameMMR = item.Ward_Name_MMR;
+        } else if (currentDataType === 'villageTracts') {
+          nameEng = item.Village_Tract_Name_Eng;
+          nameMMR = item.Village_Tract_Name_MMR;
+        }
+        let score = 0;
+        const lowerNameEng = nameEng?.toLowerCase() || '';
+        const lowerNameMMR = nameMMR?.toLowerCase() || '';
+
+        if (lowerNameEng === query || lowerNameMMR === query) {
+          score = 3; // Exact match gets highest score
+        } else if (lowerNameEng.startsWith(query) || lowerNameMMR.startsWith(query)) {
+          score = 2; // Starts with gets middle score
+        } else if (lowerNameEng.includes(query) || lowerNameMMR.includes(query)) {
+          score = 1; // Substring gets lowest score
+        }
+
+        return { item, score };
+      }).filter(match => match.score > 0) // Filter out non-matches
+       .sort((a, b) => b.score - a.score) // Sort by score
+      .map(match => match.item) // Extract original item
+
+      return scoredMatches.slice(0, 20);
+    }
+  }
 function showSuggestions(matches) {
     suggestionsContainer.innerHTML = '';
         if (matches.length > 0) {
@@ -219,42 +263,46 @@ function showSuggestions(matches) {
 function showResult(match) {
     resultContainer.innerHTML = '';
     let resultContent = '<h2>Location Details</h2><div class="result-grid">';
-    if (currentDataType === 'towns') {
-            resultContent += `
-            <div class="result-item">
-                <strong>State/Region:</strong><br>${match.SR_Name_Eng || 'N/A'}
-            </div>
-            <div class="result-item">
-                <strong>State/Region PCode:</strong><br>${match.SR_Pcode || 'N/A'}
-            </div>
-            <div class="result-item">
-                <strong>District/SAZ:</strong><br>${match['District/SAZ_Name_Eng'] || 'N/A'}
-            </div>
-            <div class="result-item">
-                <strong>District/SAZ PCode:</strong><br>${match['District/SAZ_Pcode'] || 'N/A'}
-            </div>
-            <div class="result-item">
-                <strong>Township:</strong><br>${match.Township_Name_Eng || 'N/A'}
-            </div>
-            <div class="result-item">
-                <strong>Township PCode:</strong><br>${match.Tsp_Pcode || 'N/A'}
-            </div>
-            <div class="result-item">
-                <strong>Town Name (English):</strong><br>${match.Town_Name_Eng || 'N/A'}
-            </div>
-            <div class="result-item">
-                <strong>Town Name (Myanmar):</strong><br>${match.Town_Name_MMR || 'N/A'}
-            </div>
-            <div class="result-item">
-                <strong>Town PCode:</strong><br>${match.Town_Pcode || 'N/A'}
-            </div>
-            <div class="result-item">
-                <strong>Coordinates:</strong><br>
-                Lat: ${match.Latitude || 'N/A'}, Long: ${match.Longitude || 'N/A'}
-            </div>
-        `;
+    let postalInfo = null;
+       if (currentDataType === 'towns') {
+            postalInfo = postalLookup.get(match.Town_Pcode);
+              resultContent += `
+                    <div class="result-item">
+                        <strong>State/Region:</strong><br>${match.SR_Name_Eng || 'N/A'}
+                    </div>
+                    <div class="result-item">
+                        <strong>State/Region PCode:</strong><br>${match.SR_Pcode || 'N/A'}
+                    </div>
+                    <div class="result-item">
+                        <strong>District/SAZ:</strong><br>${match['District/SAZ_Name_Eng'] || 'N/A'}
+                    </div>
+                    <div class="result-item">
+                        <strong>District/SAZ PCode:</strong><br>${match['District/SAZ_Pcode'] || 'N/A'}
+                    </div>
+                    <div class="result-item">
+                        <strong>Township:</strong><br>${match.Township_Name_Eng || 'N/A'}
+                    </div>
+                     <div class="result-item">
+                        <strong>Township PCode:</strong><br>${match.Tsp_Pcode || 'N/A'}
+                     </div>
+                      <div class="result-item">
+                        <strong>Town Name (English):</strong><br>${match.Town_Name_Eng || 'N/A'}
+                      </div>
+                      <div class="result-item">
+                         <strong>Town Name (Myanmar):</strong><br>${match.Town_Name_MMR || 'N/A'}
+                    </div>
+                    <div class="result-item">
+                        <strong>Town PCode:</strong><br>${match.Town_Pcode || 'N/A'}
+                    </div>
+                     <div class="result-item">
+                       <strong>Coordinates:</strong><br>
+                        Lat: ${match.Latitude || 'N/A'}, Long: ${match.Longitude || 'N/A'}
+                    </div>
+                     `;
+
     }
     else if (currentDataType === 'wards') {
+         postalInfo = postalLookup.get(match.Ward_Pcode);
             resultContent += `
                 <div class="result-item">
                     <strong>State/Region:</strong><br>${match.SR_Name_Eng || 'N/A'}
@@ -269,54 +317,64 @@ function showResult(match) {
                     <strong>District/SAZ PCode:</strong><br>${match['District/SAZ_Pcode'] || 'N/A'}
                 </div>
                 <div class="result-item">
+                    <strong>Township:</strong><br>${match.Township_Name_Eng || 'N/A'}
+                </div>
+                  <div class="result-item">
+                    <strong>Township PCode:</strong><br>${match.Tsp_Pcode || 'N/A'}
+                  </div>
+                <div class="result-item">
+                <strong>Ward Name (English):</strong><br>${match.Ward_Name_Eng || 'N/A'}
+                </div>
+                 <div class="result-item">
+                   <strong>Ward Name (Myanmar):</strong><br>${match.Ward_Name_MMR || 'N/A'}
+                </div>
+                <div class="result-item">
+                   <strong>Ward PCode:</strong><br>${match.Ward_Pcode || 'N/A'}
+                </div>
+
+            `;
+    } else if (currentDataType === 'villageTracts') {
+         postalInfo = postalLookup.get(match.VT_Pcode);
+             resultContent += `
+                 <div class="result-item">
+                    <strong>State/Region:</strong><br>${match.SR_Name_Eng || 'N/A'}
+                </div>
+                <div class="result-item">
+                    <strong>State/Region PCode:</strong><br>${match.SR_Pcode || 'N/A'}
+                </div>
+                 <div class="result-item">
+                     <strong>District/SAZ:</strong><br>${match['District/SAZ_Name_Eng'] || 'N/A'}
+                </div>
+                 <div class="result-item">
+                    <strong>District/SAZ PCode:</strong><br>${match['District/SAZ_Pcode'] || 'N/A'}
+                 </div>
+                 <div class="result-item">
                     <strong>Township:</strong><br>${match.Township_Name_Eng || 'N/A'}
                 </div>
                 <div class="result-item">
                     <strong>Township PCode:</strong><br>${match.Tsp_Pcode || 'N/A'}
                 </div>
-                <div class="result-item">
-                <strong>Ward Name (English):</strong><br>${match.Ward_Name_Eng || 'N/A'}
-                </div>
-                <div class="result-item">
-                    <strong>Ward Name (Myanmar):</strong><br>${match.Ward_Name_MMR || 'N/A'}
-                </div>
-                <div class="result-item">
-                    <strong>Ward PCode:</strong><br>${match.Ward_Pcode || 'N/A'}
-                </div>
-
-            `;
-    } else if (currentDataType === 'villageTracts') {
-            resultContent += `
-                <div class="result-item">
-                    <strong>State/Region:</strong><br>${match.SR_Name_Eng || 'N/A'}
-                </div>
-                <div class="result-item">
-                    <strong>State/Region PCode:</strong><br>${match.SR_Pcode || 'N/A'}
-                </div>
-                <div class="result-item">
-                    <strong>District/SAZ:</strong><br>${match['District/SAZ_Name_Eng'] || 'N/A'}
-                </div>
-                <div class="result-item">
-                    <strong>District/SAZ PCode:</strong><br>${match['District/SAZ_Pcode'] || 'N/A'}
-                </div>
-                <div class="result-item">
-                    <strong>Township:</strong><br>${match.Township_Name_Eng || 'N/A'}
-                </div>
-                <div class="result-item">
-                <strong>Township PCode:</strong><br>${match.Tsp_Pcode || 'N/A'}
-                </div>
-                <div class="result-item">
+                 <div class="result-item">
                     <strong>Village Tract Name (English):</strong><br>${match.Village_Tract_Name_Eng || 'N/A'}
                 </div>
-                <div class="result-item">
-                    <strong>Village Tract Name (Myanmar):</strong><br>${match.Village_Tract_Name_MMR || 'N/A'}
+                 <div class="result-item">
+                   <strong>Village Tract Name (Myanmar):</strong><br>${match.Village_Tract_Name_MMR || 'N/A'}
                 </div>
                 <div class="result-item">
                     <strong>Village Tract PCode:</strong><br>${match.VT_Pcode || 'N/A'}
-                </div>
-            `;
+                 </div>
+              `;
         }
-
+    if (postalInfo) {
+      resultContent += `
+        <div class="result-item">
+          <strong>Postal Code:</strong><br>${postalInfo['Postal Code'] || 'N/A'}
+        </div>
+        <div class="result-item">
+          <strong>Postal Code Name:</strong><br>${postalInfo['Village Tract/ Ward'] || 'N/A'}
+        </div>
+      `;
+    }
     resultContent += '</div>';
     resultContainer.innerHTML = resultContent;
     resultContainer.style.display = 'block';
@@ -340,6 +398,9 @@ document.addEventListener('click', (e) => {
     }
 });
 
+
+
 loadCSVData('pcode9.5_town_data.csv', 'towns');
 loadCSVData('pcode9.5_ward_data.csv', 'wards');
-loadCSVData('pcode_9.5_village_tract_data.csv', 'villageTracts');
+loadCSVData('pcode9.5_village_tract_data.csv', 'villageTracts');
+loadPostalData('myanmar_postal_code_data.csv');
