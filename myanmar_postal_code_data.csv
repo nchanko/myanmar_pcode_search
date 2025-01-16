@@ -2986,8 +2986,8 @@ Rakhine ,Ann ,Ah Soe Ya Ah Hmu Htan ,715004,,MMR012014701504,Found
 Rakhine ,Ann ,No (5) ,715005,,MMR012014701505,Found
 Rakhine ,Ann ,Myauk Bet ,715006,,MMR012014701506,Found
 Rakhine ,Ann ,Lay Yin Kwin ,715007,,MMR012014701507,Found
-Rakhine,Ann,Zay,715008,,,Not Found
-Rakhine,Ann,Zay Taung,715009,,,Not Found
+Rakhine,Ann,Zay,0715008,,,Not Found
+Rakhine,Ann,Zay Taung,0715009,,,Not Found
 Rakhine ,Ann ,Ann (North) ,715200,MMR012014001,,Found
 Rakhine ,Ann ,Auk ,715201,MMR012014002,,Found
 Rakhine ,Ann ,Ann (South) ,715202,MMR012014003,,Found
@@ -3402,7 +3402,7 @@ Shan  (South),Pekon ,Yi Nwe ,606206,MMR014010007,,Found
 Shan  (South),Pekon ,Yi Long Yi Kan ,606207,MMR014010008,,Found
 Shan  (South),Pekon ,Thi Kyeik ,606208,MMR014010009,,Found
 Shan  (South),Pekon ,Ah Lel Pa Daung ,606209,MMR014010010,,Found
-Shan (South),Pekon,Kayaw,606210,,,Not Found
+Shan (South),Pekon,Kayaw,0606210,,,Not Found
 Shan (South),Pekon,Pekon(Naung Hlaing),606211,MMR014011018,,Found
 Shan  (South),Lawksawk ,Taung Kwet Thit ,607001,,MMR014008701501,Found
 Shan  (South),Lawksawk ,Myo Kone ,607002,,MMR014008701502,Found
@@ -3679,7 +3679,7 @@ Shan  (South),Nansang ,Bant Hin ,616217,MMR014013018,,Found
 Shan  (South),Nansang ,Ping Hse ,616218,MMR014013019,,Found
 Shan  (South),Nansang ,Ho Yang ,616219,MMR014013020,,Found
 Shan  (South),Mongnai ,U Yin ,617001,,MMR014019701501,Found
-Shan (South),Mongnai,Lwi Myay,617002,,,Not Found
+Shan (South),Mongnai,Lwi Myay,0617002,,,Not Found
 Shan  (South),Mongnai ,Pawt Mong ,617003,,MMR014019701503,Found
 Shan  (South),Mongnai ,Nar Hawng ,617004,,MMR014019701504,Found
 Shan  (South),Mongnai ,Nawng Kyawt ,617005,,MMR014019701505,Found
@@ -3761,7 +3761,7 @@ Shan  (South),Kunhing ,Keng Lun ,621201,MMR014014002,,Found
 Shan  (South),Kunhing ,Ho Pang ,621202,MMR014014003,,Found
 Shan  (South),Kunhing ,Tar Kaw ,621203,MMR014014004,,Found
 Shan  (South),Kunhing ,Wan Pat ,621204,MMR014014005,,Found
-Shan (South),Kunhing,Laik Kam,621205,,,Not Found
+Shan (South),Kunhing,Laik Kam,0621205,,,Not Found
 Shan  (South),Kunhing ,Wan Hpai ,621206,MMR014014007,,Found
 Shan (South),Kunhing,Kyeng Hkam,621207,MMR014014008,,Found
 Shan  (South),Kunhing ,Wan Law ,621208,MMR014014009,,Found
@@ -3832,12 +3832,12 @@ Shan (South),Intaw Town,No (4),667004,,MMR014008702504,Found
 Shan (South),Intaw Town,No (5),667005,,MMR014008702505,Found
 Shan (South),Intaw Town,No (6),667006,,MMR014008702506,Found
 Shan (South),Pinlon Town,No (1),668001,,MMR014011702501,Found
-Shan (South),-,No (1),668001,,,Not Found
-Shan (South),-,No (2),668002,,,Not Found
+Shan (South),Pin Lon,No (1),0668001,,MMR014011702501,Found
+Shan (South),Pin Lon,No (2),0668002,,MMR014011702502,Found
 Shan (South),Pinlon Town,No (2),668002,,MMR014011702502,Found
-Shan (South),-,No (3),668003,,,Not Found
+Shan (South),Pin Lon,No (3),0668003,,MMR014011702503,Found
 Shan (South),Pinlon Town,No (3),668003,,MMR014011702503,Found
-Shan (South),-,No (4),668004,,,Not Found
+Shan (South),Pin Lon,No (4),0668004,,MMR014011702504,Found
 Shan (South),Pinlon Town,No (4),668004,,MMR014011702504,Found
 Shan (South),Mongsan (Hmonesan) Town,No (1),669001,,MMR014017702501,Found
 Shan (South),Mongsan (Hmonesan) Town,No (2),669002,,MMR014017702502,Found
@@ -5365,24 +5365,24 @@ Yangon ,Htantabin ,Da Ne Ri ,1139250,MMR013006051,,Found
 Yangon ,Htantabin ,Sat Ka Lay ,1139251,MMR013006052,,Found
 Yangon ,Htantabin ,Yae Hpyu ,1139252,MMR013006053,,Found
 Yangon ,Htantabin ,Ta Dar U ,1139253,MMR013006054,,Found
-Yangon,-,No (1),1140001,,,Not Found
+Yangon,Hlaingtharya (East),No (1),1140001,,MMR013046701501,Found
 Yangon ,Hlaingtharya(East) ,No (1) ,1140001,,MMR013046701501,Found
 Yangon ,Hlaingtharya(East) ,No (2) ,1140002,,MMR013046701502,Found
-Yangon,-,No (2),1140002,,,Not Found
-Yangon,-,No (3),1140003,,,Not Found
+Yangon,Hlaingtharya (East),No (2),1140002,,MMR013046701502,Found
+Yangon,Hlaingtharya (East),No (3),1140003,,MMR013046701503,Found
 Yangon ,Hlaingtharya(East) ,No (3) ,1140003,,MMR013046701503,Found
 Yangon ,Hlaingtharya(East) ,No (4) ,1140004,,MMR013046701504,Found
-Yangon,-,No (4),1140004,,,Not Found
-Yangon,-,No (5),1140005,,,Not Found
+Yangon,Hlaingtharya (East),No (4),1140004,,MMR013046701504,Found
+Yangon,Hlaingtharya (East),No (5),1140005,,MMR013046701505,Found
 Yangon ,Hlaingtharya(East) ,No (5) ,1140005,,MMR013046701505,Found
-Yangon,-,No (6),1140006,,,Not Found
+Yangon,Hlaingtharya (East),No (6),1140006,,MMR013046701506,Found
 Yangon ,Hlaingtharya(East) ,No (6) ,1140006,,MMR013046701506,Found
-Yangon,-,No (7),1140007,,,Not Found
+Yangon,Hlaingtharya (East),No (7),1140007,,MMR013046701507,Found
 Yangon ,Hlaingtharya(East) ,No (7) ,1140007,,MMR013046701507,Found
 Yangon ,Hlaingtharya(East) ,No (8) ,1140008,,MMR013046701508,Found
-Yangon,-,No (8),1140008,,,Not Found
+Yangon,Hlaingtharya (East),No (8),1140008,,MMR013046701508,Found
 Yangon ,Hlaingtharya(East) ,No (15) ,1140009,,MMR013046701509,Found
-Yangon,-,No (15),1140009,,,Not Found
+Yangon,Hlaingtharya (East),No (15),1140009,,MMR013046701509,Found
 Yangon,-,Shwe Lin Ban,1140201,MMR013008009,,Found
 Yangon ,Hlaingtharya(East) ,Shwe Lin Ban ,1140201,MMR013046001,,Found
 Yangon,-,Ka Sin,1140202,MMR013008001,,Found
@@ -5393,27 +5393,27 @@ Yangon,Hlaingtharya(East),Oke Kan Thaung Kyar (Yae Oke Kan),1140204,MMR013008005
 Yangon,-,Yae Oke Kan,1140204,MMR013008005,,Found
 Yangon,-,Nyaung,1140205,MMR013008003,,Found
 Yangon ,Hlaingtharya(East) ,Nyaung ,1140205,MMR013046005,,Found
-Yangon,-,No (9),1141001,,,Not Found
+Yangon,Hlaingtharya (West),No (9),1141001,,MMR013047701501,Found
 Yangon ,Hlaingtharya (West) ,No (9) ,1141001,,MMR013047701501,Found
 Yangon ,Hlaingtharya (West) ,No (10) ,1141002,,MMR013047701502,Found
-Yangon,-,No (10),1141002,,,Not Found
-Yangon,-,No (11),1141003,,,Not Found
+Yangon,Hlaingtharya (West),No (10),1141002,,MMR013047701502,Found
+Yangon,Hlaingtharya (West),No (11),1141003,,MMR013047701503,Found
 Yangon ,Hlaingtharya (West) ,No (11) ,1141003,,MMR013047701503,Found
-Yangon,-,No (12),1141004,,,Not Found
+Yangon,Hlaingtharya (West),No (12),1141004,,MMR013047701504,Found
 Yangon ,Hlaingtharya (West) ,No (12) ,1141004,,MMR013047701504,Found
-Yangon,-,No (13),1141005,,,Not Found
+Yangon,Hlaingtharya (West),No (13),1141005,,MMR013047701505,Found
 Yangon ,Hlaingtharya (West) ,No (13) ,1141005,,MMR013047701505,Found
 Yangon ,Hlaingtharya (West) ,No (14) ,1141006,,MMR013047701506,Found
-Yangon,-,No (14),1141006,,,Not Found
+Yangon,Hlaingtharya (West),No (14),1141006,,MMR013047701506,Found
 Yangon ,Hlaingtharya (West) ,No (16) ,1141007,,MMR013047701507,Found
-Yangon,-,No (16),1141007,,,Not Found
-Yangon,-,No (17),1141008,,,Not Found
+Yangon,Hlaingtharya (West),No (16),1141007,,MMR013047701507,Found
+Yangon,Hlaingtharya (West),No (17),1141008,,MMR013047701508,Found
 Yangon ,Hlaingtharya (West) ,No (17) ,1141008,,MMR013047701508,Found
 Yangon ,Hlaingtharya (West) ,No (18) ,1141009,,MMR013047701509,Found
-Yangon,-,No (18),1141009,,,Not Found
+Yangon,Hlaingtharya (West),No (18),1141009,,MMR013047701509,Found
 Yangon ,Hlaingtharya (West) ,No (19) ,1141010,,MMR013047701510,Found
-Yangon,-,No (19),1141010,,,Not Found
-Yangon,-,No (20),1141011,,,Not Found
+Yangon,Hlaingtharya (West),No (19),1141010,,MMR013047701510,Found
+Yangon,Hlaingtharya (West),No (20),1141011,,MMR013047701511,Found
 Yangon ,Hlaingtharya (West) ,No (20) ,1141011,,MMR013047701511,Found
 Yangon,-,Ah Lel,1141201,MMR013008004,,Found
 Yangon ,Hlaingtharya (West) ,Ah Lel ,1141201,MMR013047001,,Found
@@ -13638,14 +13638,14 @@ Kachin ,Tanai ,Da Naing Yang ,109206,MMR001004007,,Found
 Kachin ,Tanai ,In Htoi In Praw ,109207,MMR001004008,,Found
 Kachin ,Tanai ,Gawt Lwng Yang ,109208,MMR001004009,,Found
 Kachin,Tanai,Sa Rar Ka Htaung,109209,MMR001004010,,Found
-Kachin,Tanai,Zi Kawng,109210,,,Not Found
+Kachin,Tanai,Zi Kawng,0109210,,,Not Found
 Kachin ,Tanai ,In Gam Gar ,109211,MMR001004012,,Found
 Kachin ,Tanai ,Shein Bway Kawng ,109212,MMR001004013,,Found
 Kachin ,Tanai ,Ahr Hlyin ,109213,MMR001004014,,Found
 Kachin,Tanai,Sim Sa,109214,MMR001004015,,Found
 Kachin ,Tanai ,Hka Long ,109215,MMR001004016,,Found
 Kachin ,Tanai ,Ta Ron ,109216,MMR001004017,,Found
-Kachin,Tanai,Sha Du Suk,109217,,,Not Found
+Kachin,Tanai,Sha Du Suk,0109217,,,Not Found
 Kachin ,Mogaung ,Nam Yin ,110001,,MMR001008701501,Found
 Kachin ,Mogaung ,Oe Tan ,110002,,MMR001008701502,Found
 Kachin,Mogaung,Ah Lel,110003,,MMR001008701503,Found
