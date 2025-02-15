@@ -1,3 +1,11 @@
+Version 1.1 (Feb 14 2025)
+- added with Pcode version 9.6
+- added village search.
+
+
+Version 1.0
+-initial release
+
 # Myanmar PCode Search / မြန်မာ ပုဒ်ကုဒ် ရှာဖွေရေးစနစ်
 
 A web application for searching Myanmar locations using PCodes (Place Codes) with an interactive map interface.

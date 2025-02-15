@@ -1,7 +1,8 @@
 let pcodeData = {
     towns: [],
     wards: [],
-    villageTracts: []
+    villageTracts: [],
+    villages: []
 };
 let postalData = [];
 let postalLookup = new Map();
@@ -24,6 +25,7 @@ const contextMessage = document.createElement('div');
 const townSearchBtn = document.getElementById('townSearchBtn');
 const wardSearchBtn = document.getElementById('wardSearchBtn');
 const vtSearchBtn = document.getElementById('vtSearchBtn');
+const villageSearchBtn = document.getElementById('villageSearchBtn');
 const pcodeSearchBtn = document.getElementById('pcodeSearchBtn');
 
 function setActiveButton(button) {
@@ -72,8 +74,15 @@ vtSearchBtn.addEventListener('click', (e) => {
     searchInput.placeholder = 'Search by village tract name...';
     searchInput.value = '';
         suggestionsContainer.style.display = 'none';
+});
 
-
+villageSearchBtn.addEventListener('click', (e) => {
+        setActiveButton(villageSearchBtn);
+    searchByPcode = false;
+    currentDataType = 'villages';
+    searchInput.placeholder = 'Search by village name...';
+    searchInput.value = '';
+        suggestionsContainer.style.display = 'none';
 });
 
 
@@ -157,6 +166,8 @@ function searchPcodes(query) {
           pcode = item.Ward_Pcode || item.Tsp_Pcode || item['District/SAZ_Pcode'] || item.SR_Pcode;
         else if (currentDataType === 'villageTracts')
           pcode = item.VT_Pcode || item.Tsp_Pcode || item['District/SAZ_Pcode'] || item.SR_Pcode;
+        else if (currentDataType === 'villages')
+          pcode = item.Village_Pcode;
 
         return pcode?.toLowerCase().includes(query);
       }).slice(0, 20);
@@ -175,6 +186,9 @@ function searchPcodes(query) {
         } else if (currentDataType === 'villageTracts') {
           nameEng = item.Village_Tract_Name_Eng;
           nameMMR = item.Village_Tract_Name_MMR;
+        } else if (currentDataType === 'villages') {
+          nameEng = item.Village_Name_Eng;
+          nameMMR = item.Village_Name_MMR;
         }
         let score = 0;
         const lowerNameEng = nameEng?.toLowerCase() || '';
@@ -213,6 +227,8 @@ function showSuggestions(matches) {
                     mainText = `${match.Ward_Pcode} - ${match.Ward_Name_Eng}`;
                 else if (currentDataType === 'villageTracts')
                         mainText = `${match.VT_Pcode} - ${match.Village_Tract_Name_Eng}`;
+                else if (currentDataType === 'villages')
+                        mainText = `${match.Village_Pcode} - ${match.Village_Name_Eng}`;
 
             } else {
                 if(currentDataType === 'towns') {
@@ -233,6 +249,11 @@ function showSuggestions(matches) {
                     `${match.Village_Tract_Name_MMR} (${match.Village_Tract_Name_Eng})` :
                     match.Village_Tract_Name_Eng;
                     hierarchyText = `${match.SR_Name_Eng} > ${match['District/SAZ_Name_Eng']} > ${match.Township_Name_Eng}`;
+                } else if (currentDataType === 'villages') {
+                    mainText = showMyanmarText && match.Village_Name_MMR ?
+                    `${match.Village_Name_MMR} (${match.Village_Name_Eng})` :
+                    match.Village_Name_Eng;
+                    hierarchyText = `${match.SR_Name_Eng} > ${match['District/SAZ_Name_Eng']} > ${match.Township_Name_Eng} > ${match.Village_Tract_Name_Eng}`;
                 }
 
             }
@@ -364,6 +385,46 @@ function showResult(match) {
                     <strong>Village Tract PCode:</strong><br>${match.VT_Pcode || 'N/A'}
                  </div>
               `;
+        } else if (currentDataType === 'villages') {
+            resultContent += `
+                <div class="result-item">
+                    <strong>State/Region:</strong><br>${match.SR_Name_Eng || 'N/A'}
+                </div>
+                <div class="result-item">
+                    <strong>State/Region PCode:</strong><br>${match.SR_Pcode || 'N/A'}
+                </div>
+                <div class="result-item">
+                    <strong>District/SAZ:</strong><br>${match['District/SAZ_Name_Eng'] || 'N/A'}
+                </div>
+                <div class="result-item">
+                    <strong>District/SAZ PCode:</strong><br>${match['District/SAZ_Pcode'] || 'N/A'}
+                </div>
+                <div class="result-item">
+                    <strong>Township:</strong><br>${match.Township_Name_Eng || 'N/A'}
+                </div>
+                <div class="result-item">
+                    <strong>Township PCode:</strong><br>${match.Tsp_Pcode || 'N/A'}
+                </div>
+                <div class="result-item">
+                    <strong>Village Tract:</strong><br>${match.Village_Tract_Name_Eng || 'N/A'}
+                </div>
+                <div class="result-item">
+                    <strong>Village Tract PCode:</strong><br>${match.VT_Pcode || 'N/A'}
+                </div>
+                <div class="result-item">
+                    <strong>Village Name (English):</strong><br>${match.Village_Name_Eng || 'N/A'}
+                </div>
+                <div class="result-item">
+                    <strong>Village Name (Myanmar):</strong><br>${match.Village_Name_MMR || 'N/A'}
+                </div>
+                <div class="result-item">
+                    <strong>Village PCode:</strong><br>${match.Village_Pcode || 'N/A'}
+                </div>
+                <div class="result-item">
+                    <strong>Coordinates:</strong><br>
+                    ${match.Latitude || 'N/A'}, ${match.Longitude || 'N/A'}
+                </div>
+            `;
         }
     if (postalInfo) {
       resultContent += `
@@ -400,7 +461,8 @@ document.addEventListener('click', (e) => {
 
 
 
-loadCSVData('pcode9.5_town_data.csv', 'towns');
-loadCSVData('pcode9.5_ward_data.csv', 'wards');
-loadCSVData('pcode9.5_village_tract_data.csv', 'villageTracts');
+loadCSVData('pcode9.6_town_data.csv', 'towns');
+loadCSVData('pcode9.6_ward_data.csv', 'wards');
+loadCSVData('pcode9.6_village_tract_data.csv', 'villageTracts');
 loadPostalData('myanmar_postal_code_data.csv');
+loadCSVData('pcode9.6_village_data.csv', 'villages');
