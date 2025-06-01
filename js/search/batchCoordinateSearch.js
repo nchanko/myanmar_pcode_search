@@ -74,7 +74,8 @@ export async function processCoordinateCSV(file, radius = 10) {
             // Continue processing but log warning
         }
 
-        const coordString = `${latitude}, ${longitude}`;
+        // Use original string values to preserve exact formatting (including trailing zeros)
+        const coordString = `${lat}, ${lon}`;
         console.log(`Searching for coordinates: ${coordString}`);
         
         const matches = searchByLatLong(coordString, radius, 1);
