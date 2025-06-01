@@ -1,12 +1,17 @@
 :root {
-    --primary-color: #2c3e50;
-    --secondary-color: #34495e;
-    --accent-color: #3498db;
-    --background-color: #f5f5f5;
+    --primary-color: #667eea;
+    --secondary-color: #764ba2;
+    --accent-color: #10b981;
+    --dark-color: #1f2937;
+    --background-color: #f8faff;
     --card-background: #ffffff;
-    --text-color: #333;
-    --border-radius: 8px;
-    --box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    --text-color: #2d3748;
+    --border-radius: 12px;
+    --box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --gradient-accent: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    --gradient-dark: linear-gradient(135deg, #1f2937 0%, #374151 100%);
+    --gradient-card: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }
 
 * {
@@ -17,17 +22,19 @@
 
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: var(--background-color);
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background-attachment: fixed;
     color: var(--text-color);
     line-height: 1.6;
     padding: 20px;
+    min-height: 100vh;
 }
 
 .container {
     max-width: 1400px;
     margin: 0 auto;
     display: flex;
-    gap: 20px;
+    gap: 25px;
 }
 
 .search-section {
@@ -48,65 +55,92 @@ body {
 }
 
 .header {
-    background-color: var(--card-background);
-    padding: 20px;
+    background: var(--card-background);
+    background: linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.9) 100%);
+    backdrop-filter: blur(10px);
+    padding: 25px;
     border-radius: var(--border-radius);
     box-shadow: var(--box-shadow);
-    margin-bottom: 20px;
+    margin-bottom: 25px;
+    border: 1px solid rgba(255,255,255,0.2);
 }
 
 h1 {
-    color: var(--primary-color);
-    font-size: 24px;
-    margin-bottom: 10px;
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-size: 28px;
+    margin-bottom: 15px;
+    font-weight: 700;
 }
 
- .search-type-toggle {
+.search-type-toggle {
     display: flex;
+    flex-direction: column;
     gap: 10px;
     margin-bottom: 20px;
 }
 
+.search-row {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
 .toggle-btn {
-    padding: 8px 16px;
+    padding: 12px 20px;
     border: none;
-    background-color: var(--background-color);
+    background: rgba(255, 255, 255, 0.9);
     color: var(--text-color);
-    border-radius: 20px;
+    border-radius: 25px;
     cursor: pointer;
     transition: all 0.3s ease;
+    font-weight: 500;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
 }
 
+.toggle-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    background: rgba(255, 255, 255, 1);
+}
 
 .toggle-btn.active {
-    background-color: var(--accent-color);
+    background: var(--gradient-primary);
     color: white;
-   box-shadow: 0 0 0 2px var(--accent-color);  /* Add border*/
-}
-
-
-.search-container .context-message {
-    font-size: 0.9em;
-    color: #555;
-    margin-top: 8px;
-    font-style: italic;
-    display: none;
-}
-
-.search-container .context-message.active {
-display: block;
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+    border: none;
 }
 
 .toggle-btn i {
     margin-right: 8px;
 }
 
+/* Batch Upload Button Styling */
+.batch-upload-btn {
+    background: var(--gradient-accent) !important;
+    color: white !important;
+    font-weight: 600;
+    box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4) !important;
+}
+
+.batch-upload-btn:hover {
+    background: var(--gradient-accent) !important;
+    transform: translateY(-3px) !important;
+    box-shadow: 0 12px 30px rgba(16, 185, 129, 0.5) !important;
+}
+
 .filters {
-    background: var(--card-background);
-    padding: 20px;
+    background: linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.9) 100%);
+    backdrop-filter: blur(10px);
+    padding: 25px;
     border-radius: var(--border-radius);
     box-shadow: var(--box-shadow);
-    margin-bottom: 20px;
+    margin-bottom: 25px;
+    border: 1px solid rgba(255,255,255,0.2);
 }
 
 .filter-group {
@@ -134,32 +168,60 @@ select {
 }
 
 .search-container {
-    background: var(--card-background);
-    padding: 20px;
+    background: linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.9) 100%);
+    backdrop-filter: blur(10px);
+    padding: 25px;
     border-radius: var(--border-radius);
     box-shadow: var(--box-shadow);
     position: relative;
+    border: 1px solid rgba(255,255,255,0.2);
+    margin-bottom: 25px;
+    z-index: 1000 !important;
+}
+
+.search-container .context-message {
+    font-size: 0.9em;
+    color: var(--secondary-color);
+    margin-top: 8px;
+    font-style: italic;
+    display: none;
+}
+
+.search-container .context-message.active {
+    display: block;
 }
 
 .search-input {
     width: 100%;
-    padding: 12px 40px 12px 12px;
+    padding: 15px 45px 15px 15px;
     font-size: 16px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    transition: border-color 0.3s ease;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-radius: var(--border-radius);
+    transition: all 0.3s ease;
+    background: rgba(255,255,255,0.8);
+    backdrop-filter: blur(5px);
 }
 
 .search-input:focus {
     outline: none;
-    border-color: var(--accent-color);
+    border: 2px solid transparent;
+    background: linear-gradient(white, white) padding-box,
+                var(--gradient-primary) border-box;
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.2);
 }
 
 .search-icon {
     position: absolute;
     right: 32px;
     top: 32px;
-    color: #999;
+    color: var(--dark-color);
+    opacity: 0.7;
+    transition: all 0.3s ease;
+}
+
+.search-icon:hover {
+    opacity: 1;
+    color: var(--primary-color);
 }
 
 .suggestions {
@@ -167,15 +229,15 @@ select {
     top: 100%;
     left: 0;
     right: 0;
-    background: white;
-    border: 1px solid #ddd;
+    background: white !important;
+    border: 2px solid #ddd;
     border-top: none;
     max-height: 300px;
     overflow-y: auto;
     display: none;
-    z-index: 1000;
+    z-index: 99999 !important;
     border-radius: 0 0 var(--border-radius) var(--border-radius);
-    box-shadow: var(--box-shadow);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.3) !important;
 }
 
 .suggestion-item {
@@ -191,28 +253,58 @@ select {
 
 .suggestion-item .main-text {
     font-weight: 500;
-    color: var(--primary-color);
+    color: var(--dark-color);
 }
 
 .suggestion-item .hierarchy {
     font-size: 0.9em;
-    color: #666;
+    color: var(--secondary-color);
     margin-top: 4px;
 }
 
+/* Coordinate search specific styles */
+.coordinate-search .suggestion-item {
+    border-left: 3px solid var(--accent-color);
+}
+
+.suggestion-item .distance-info {
+    color: var(--accent-color);
+    font-weight: 500;
+    font-size: 0.85em;
+}
+
+.coordinate-search .search-input {
+    font-family: 'Courier New', monospace;
+    letter-spacing: 0.5px;
+}
+
+.coordinate-search .search-input::placeholder {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    letter-spacing: normal;
+}
+
 .result {
-    background: var(--card-background);
-    padding: 20px;
+    background: linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.9) 100%);
+    backdrop-filter: blur(10px);
+    padding: 25px;
     border-radius: var(--border-radius);
     box-shadow: var(--box-shadow);
-    margin-top: 20px;
+    margin-top: 0;
     display: none;
+    border: 1px solid rgba(255,255,255,0.2);
+    clear: both;
+    z-index: 10;
+    position: relative;
 }
 
 .result h2 {
-    color: var(--primary-color);
-    margin-bottom: 15px;
-    font-size: 20px;
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 20px;
+    font-size: 22px;
+    font-weight: 600;
 }
 
 .result-grid {
@@ -222,9 +314,22 @@ select {
 }
 
 .result-item {
-    background: #f8f9fa;
-    padding: 12px;
-    border-radius: 4px;
+    background: linear-gradient(135deg, rgba(31, 41, 55, 0.05) 0%, rgba(107, 114, 128, 0.05) 100%);
+    padding: 15px;
+    border-radius: var(--border-radius);
+    border-left: 4px solid var(--accent-color);
+    transition: all 0.3s ease;
+}
+
+.result-item:hover {
+    background: linear-gradient(135deg, rgba(31, 41, 55, 0.08) 0%, rgba(107, 114, 128, 0.08) 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.result-item strong {
+    color: var(--dark-color);
+    font-weight: 600;
 }
 
 .language-toggle {
@@ -232,6 +337,21 @@ select {
     align-items: center;
     margin-bottom: 15px;
     gap: 8px;
+    color: var(--dark-color);
+    font-weight: 500;
+}
+
+.language-toggle input[type="checkbox"] {
+    accent-color: var(--accent-color);
+}
+
+.language-toggle label {
+    cursor: pointer;
+    transition: color 0.3s ease;
+}
+
+.language-toggle label:hover {
+    color: var(--primary-color);
 }
 
 @media (max-width: 768px) {
@@ -253,21 +373,27 @@ select {
 }
 
 .footer {
-background: var(--card-background);
-padding: 20px;
-border-radius: var(--border-radius);
-box-shadow: var(--box-shadow);
-margin-top: 20px;
-font-size: 0.9em;
-color: var(--secondary-color);
-line-height: 1.6;
+    background: linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.9) 100%);
+    backdrop-filter: blur(10px);
+    padding: 25px;
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    margin-top: 25px;
+    font-size: 0.9em;
+    color: var(--text-color);
+    line-height: 1.6;
+    border: 1px solid rgba(255,255,255,0.2);
 }
 
 .footer a {
-color: var(--accent-color);
-text-decoration: none;
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-decoration: none;
+    font-weight: 500;
 }
 
 .footer a:hover {
-text-decoration: underline;
+    text-decoration: underline;
 }

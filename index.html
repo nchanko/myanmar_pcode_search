@@ -15,23 +15,34 @@
                 <h1><i class="fas fa-map-marker-alt"></i> Myanmar PCode Search</h1>
                 
                 <div class="search-type-toggle">
-                   <button class="toggle-btn active" id="townSearchBtn" data-type="towns">
-                        <i class="fas fa-city"></i> မြို့
-                    </button>
-                    <button class="toggle-btn" id="wardSearchBtn" data-type="wards">
-                        <i class="fas fa-building"></i> ရပ်ကွက်
-                    </button>
-                    <button class="toggle-btn" id="vtSearchBtn" data-type="villageTracts">
-                        <i class="fas fa-tree"></i> ကျေးရွာအုပ်စု
-                    </button>
-                     <button class="toggle-btn" id="villageSearchBtn" data-type="villages">
-                        <i class="fas fa-home"></i>  ရွာ
-                    </button>
+                    <!-- Main search types row -->
+                    <div class="search-row">
+                        <button class="toggle-btn active" id="townSearchBtn" data-type="towns">
+                            <i class="fas fa-city"></i> မြို့
+                        </button>
+                        <button class="toggle-btn" id="wardSearchBtn" data-type="wards">
+                            <i class="fas fa-building"></i> ရပ်ကွက်
+                        </button>
+                        <button class="toggle-btn" id="vtSearchBtn" data-type="villageTracts">
+                            <i class="fas fa-tree"></i> ကျေးရွာအုပ်စု
+                        </button>
+                        <button class="toggle-btn" id="villageSearchBtn" data-type="villages">
+                            <i class="fas fa-home"></i> ရွာ
+                        </button>
+                    </div>
 
-                     <button class="toggle-btn" id="pcodeSearchBtn">
-                        <i class="fas fa-hashtag"></i> Pcode
-                    </button>
-
+                    <!-- Special search functions row -->
+                    <div class="search-row">
+                        <button class="toggle-btn" id="pcodeSearchBtn">
+                            <i class="fas fa-hashtag"></i> Pcode
+                        </button>
+                        <button class="toggle-btn" id="coordinateSearchBtn">
+                            <i class="fas fa-crosshairs"></i> Lat/Long
+                        </button>
+                        <button class="toggle-btn batch-upload-btn" id="batchUploadBtn" onclick="window.open('batch-search.html', '_blank')">
+                            <i class="fas fa-upload"></i> Batch Upload
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -65,7 +76,7 @@
     </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
-    <script src="map.js"></script>
-    <script src="script.js"></script>
+    <script type="module" src="js/map.js"></script>
+    <script type="module" src="js/main.js"></script>
 </body>
 </html>

@@ -1,3 +1,6 @@
+// Import search controller to get current data type
+import { searchController } from './search/searchController.js';
+
 // Initialize map centered on Nay Pyi Taw
 const map = L.map('map').setView([19.7475, 96.115], 6);
 
@@ -31,6 +34,9 @@ function addSingleMarker(location) {
     markersLayer.clearLayers();
 
     if (location.Latitude && location.Longitude) {
+        // Get current data type from search controller
+        const currentDataType = searchController.getDataType();
+        
         let popupContent = '';
         if(currentDataType === 'towns') {
              popupContent = `
@@ -72,6 +78,8 @@ function addSingleMarker(location) {
                         <p style="margin: 0 0 5px 0;"><strong>Township:</strong> ${location.Township_Name_Eng}</p>
                         <p style="margin: 0 0 5px 0;"><strong>District:</strong> ${location['District/SAZ_Name_Eng']}</p>
                         <p style="margin: 0;"><strong>State/Region:</strong> ${location.SR_Name_Eng}</p>
+                        ${location.distance !== undefined ? 
+                            `<p style="margin: 5px 0 0 0; color: #27ae60;"><strong>Distance:</strong> ${location.distance.toFixed(2)} km</p>` : ''}
                     </div>
                 `;
          }
@@ -89,3 +97,8 @@ function addSingleMarker(location) {
 function zoomToLocation(lat, lng) {
     map.setView([lat, lng], 12);
 }
+
+// Make functions globally available for non-module scripts
+window.addSingleMarker = addSingleMarker;
+window.zoomToLocation = zoomToLocation;
+window.addMarkers = addMarkers; 

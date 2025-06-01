@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Batch Coordinate Search</title>
+    <!-- Papa Parse for CSV handling -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #667eea;
+            --secondary-color: #764ba2;
+            --accent-color: #10b981;
+            --dark-color: #1f2937;
+            --background-color: #f8faff;
+            --card-background: #ffffff;
+            --text-color: #2d3748;
+            --border-radius: 12px;
+            --box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --gradient-accent: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            --gradient-dark: linear-gradient(135deg, #1f2937 0%, #374151 100%);
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background-attachment: fixed;
+            color: var(--text-color);
+            line-height: 1.6;
+            padding: 20px;
+            min-height: 100vh;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .container {
+            background: linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.9) 100%);
+            backdrop-filter: blur(10px);
+            padding: 30px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-size: 28px;
+            margin: 0;
+            font-weight: 700;
+        }
+
+        .back-button {
+            background: var(--gradient-dark);
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(31, 41, 55, 0.3);
+        }
+
+        .back-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(31, 41, 55, 0.4);
+        }
+
+        .upload-section {
+            margin-bottom: 25px;
+            padding: 30px;
+            border: 2px dashed rgba(102, 126, 234, 0.3);
+            border-radius: var(--border-radius);
+            text-align: center;
+            background: rgba(255,255,255,0.5);
+            backdrop-filter: blur(5px);
+            transition: all 0.3s ease;
+        }
+
+        .upload-section.dragover {
+            border-color: var(--primary-color);
+            background: rgba(102, 126, 234, 0.1);
+            transform: scale(1.02);
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .upload-button {
+            background: var(--gradient-primary);
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .upload-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .settings {
+            margin: 25px 0;
+            padding: 20px;
+            background: rgba(255,255,255,0.7);
+            backdrop-filter: blur(5px);
+            border-radius: var(--border-radius);
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+
+        .settings label {
+            margin-right: 15px;
+            color: var(--dark-color);
+            font-weight: 500;
+        }
+
+        .settings input[type="number"] {
+            width: 80px;
+            padding: 8px 12px;
+            border: 2px solid rgba(102, 126, 234, 0.2);
+            border-radius: var(--border-radius);
+            background: rgba(255,255,255,0.8);
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .settings input[type="number"]:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .progress {
+            margin: 25px 0;
+            display: none;
+        }
+
+        .progress-bar {
+            height: 8px;
+            background: rgba(102, 126, 234, 0.1);
+            border-radius: 20px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: var(--gradient-primary);
+            width: 0%;
+            transition: width 0.3s ease;
+            border-radius: 20px;
+        }
+
+        #progressText {
+            color: var(--dark-color);
+            font-weight: 500;
+            text-align: center;
+        }
+
+        .download-button {
+            background: var(--gradient-accent);
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            display: none;
+            margin-top: 20px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+        }
+
+        .download-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
+        }
+
+        .error {
+            color: #dc2626;
+            margin: 15px 0;
+            padding: 15px;
+            background: rgba(252, 165, 165, 0.1);
+            border-radius: var(--border-radius);
+            border-left: 4px solid #dc2626;
+            display: none;
+            font-weight: 500;
+        }
+
+        .upload-section p {
+            color: var(--dark-color);
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-upload"></i> Batch Coordinate Search</h1>
+            <a href="index.html" class="back-button">
+                <i class="fas fa-arrow-left"></i> Back to Main
+            </a>
+        </div>
+        
+        <div class="upload-section" id="dropZone">
+            <p>Drag and drop your CSV file here or</p>
+            <input type="file" id="fileInput" class="file-input" accept=".csv">
+            <button class="upload-button" onclick="document.getElementById('fileInput').click()">
+                Choose File
+            </button>
+        </div>
+
+        <div class="settings">
+            <label>
+                Search Radius (km):
+                <input type="number" id="radius" value="10" min="1" max="100">
+            </label>
+        </div>
+
+        <div class="error" id="error"></div>
+
+        <div class="progress" id="progress">
+            <div class="progress-bar">
+                <div class="progress-bar-fill" id="progressBarFill"></div>
+            </div>
+            <p id="progressText">Processing...</p>
+        </div>
+
+        <button class="download-button" id="downloadButton">Download Results</button>
+    </div>
+
+    <script type="module">
+        import { processCoordinateCSV, resultsToCSV } from './js/search/batchCoordinateSearch.js';
+        import { dataManager } from './js/data/dataManager.js';
+
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const radiusInput = document.getElementById('radius');
+        const progress = document.getElementById('progress');
+        const progressBarFill = document.getElementById('progressBarFill');
+        const progressText = document.getElementById('progressText');
+        const downloadButton = document.getElementById('downloadButton');
+        const error = document.getElementById('error');
+
+        let dataInitialized = false;
+
+        // Initialize data when page loads
+        async function initializeData() {
+            try {
+                progressText.textContent = 'Loading village data...';
+                progress.style.display = 'block';
+                await dataManager.initializeData();
+                dataInitialized = true;
+                progress.style.display = 'none';
+                console.log('Data initialized successfully');
+            } catch (err) {
+                showError('Failed to load village data. Please refresh the page and try again.');
+                console.error('Data initialization failed:', err);
+            }
+        }
+
+        // Initialize data on page load
+        initializeData();
+
+        // Handle drag and drop
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropZone.addEventListener(eventName, highlight, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, unhighlight, false);
+        });
+
+        function highlight(e) {
+            dropZone.classList.add('dragover');
+        }
+
+        function unhighlight(e) {
+            dropZone.classList.remove('dragover');
+        }
+
+        dropZone.addEventListener('drop', handleDrop, false);
+        fileInput.addEventListener('change', handleFileSelect, false);
+
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            handleFiles(files);
+        }
+
+        function handleFileSelect(e) {
+            const files = e.target.files;
+            handleFiles(files);
+        }
+
+        async function handleFiles(files) {
+            if (files.length === 0) return;
+            
+            if (!dataInitialized) {
+                showError('Village data is still loading. Please wait and try again.');
+                return;
+            }
+            
+            const file = files[0];
+            if (!file.name.endsWith('.csv')) {
+                showError('Please upload a CSV file');
+                return;
+            }
+
+            try {
+                error.style.display = 'none';
+                progress.style.display = 'block';
+                progressBarFill.style.width = '0%';
+                progressText.textContent = 'Processing coordinates...';
+                downloadButton.style.display = 'none';
+                
+                const radius = parseFloat(radiusInput.value);
+                const results = await processCoordinateCSV(file, radius);
+                
+                // Update progress
+                progressBarFill.style.width = '100%';
+                progressText.textContent = `Processing complete! Found ${results.reduce((total, r) => total + r.matches.length, 0)} matches.`;
+                
+                // Enable download
+                const csv = resultsToCSV(results);
+                const blob = new Blob([csv], { type: 'text/csv' });
+                const url = URL.createObjectURL(blob);
+                
+                downloadButton.onclick = () => {
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'coordinate_search_results.csv';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                };
+                
+                downloadButton.style.display = 'block';
+            } catch (err) {
+                showError(err.message);
+            }
+        }
+
+        function showError(message) {
+            error.textContent = message;
+            error.style.display = 'block';
+            progress.style.display = 'none';
+            downloadButton.style.display = 'none';
+        }
+    </script>
+</body>
+</html> 

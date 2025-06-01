@@ -12,6 +12,7 @@ const suggestionsContainer = document.querySelector('.suggestions');
 const resultContainer = document.querySelector('.result');
 let showMyanmarText = false;
 let searchByPcode = false;
+let searchByCoordinates = false;
 let currentDataType = 'towns';
 
  // Add context message display
@@ -27,6 +28,7 @@ const wardSearchBtn = document.getElementById('wardSearchBtn');
 const vtSearchBtn = document.getElementById('vtSearchBtn');
 const villageSearchBtn = document.getElementById('villageSearchBtn');
 const pcodeSearchBtn = document.getElementById('pcodeSearchBtn');
+const coordinateSearchBtn = document.getElementById('coordinateSearchBtn');
 
 function setActiveButton(button) {
     document.querySelectorAll('.toggle-btn').forEach(btn => btn.classList.remove('active'));
@@ -39,6 +41,9 @@ function updateContextMessage() {
         if(searchByPcode){
          contextMessage.textContent = `Searching ${currentDataType.charAt(0).toUpperCase() + currentDataType.slice(1)} PCodes`;
         contextMessage.classList.add('active');
+        }else if(searchByCoordinates){
+         contextMessage.textContent = `Searching Villages by Coordinates (Latitude, Longitude)`;
+        contextMessage.classList.add('active');
         }else{
              contextMessage.textContent = ``;
          contextMessage.classList.remove('active');
@@ -50,50 +55,90 @@ function updateContextMessage() {
 townSearchBtn.addEventListener('click', (e) => {
         setActiveButton(townSearchBtn);
     searchByPcode = false;
+    searchByCoordinates = false;
     currentDataType = 'towns';
     searchInput.placeholder = 'Search by town name...';
     searchInput.value = '';
         suggestionsContainer.style.display = 'none';
+        
+    // Remove coordinate search styling
+    const searchContainer = document.querySelector('.search-container');
+    searchContainer.classList.remove('coordinate-search');
 
 });
 
 wardSearchBtn.addEventListener('click', (e) => {
         setActiveButton(wardSearchBtn);
     searchByPcode = false;
+    searchByCoordinates = false;
     currentDataType = 'wards';
     searchInput.placeholder = 'Search by ward name...';
     searchInput.value = '';
         suggestionsContainer.style.display = 'none';
+        
+    // Remove coordinate search styling
+    const searchContainer = document.querySelector('.search-container');
+    searchContainer.classList.remove('coordinate-search');
 
 
 });
 vtSearchBtn.addEventListener('click', (e) => {
         setActiveButton(vtSearchBtn);
     searchByPcode = false;
+    searchByCoordinates = false;
     currentDataType = 'villageTracts';
     searchInput.placeholder = 'Search by village tract name...';
     searchInput.value = '';
         suggestionsContainer.style.display = 'none';
+        
+    // Remove coordinate search styling
+    const searchContainer = document.querySelector('.search-container');
+    searchContainer.classList.remove('coordinate-search');
 });
 
 villageSearchBtn.addEventListener('click', (e) => {
         setActiveButton(villageSearchBtn);
     searchByPcode = false;
+    searchByCoordinates = false;
     currentDataType = 'villages';
     searchInput.placeholder = 'Search by village name...';
     searchInput.value = '';
         suggestionsContainer.style.display = 'none';
+        
+    // Remove coordinate search styling
+    const searchContainer = document.querySelector('.search-container');
+    searchContainer.classList.remove('coordinate-search');
 });
 
 
 pcodeSearchBtn.addEventListener('click', () => {
         setActiveButton(pcodeSearchBtn);
     searchByPcode = true;
+    searchByCoordinates = false;
        updateContextMessage();
     searchInput.placeholder = 'Search by PCode...';
     searchInput.value = '';
     suggestionsContainer.style.display = 'none';
+    
+    // Remove coordinate search styling
+    const searchContainer = document.querySelector('.search-container');
+    searchContainer.classList.remove('coordinate-search');
 
+});
+
+coordinateSearchBtn.addEventListener('click', () => {
+    setActiveButton(coordinateSearchBtn);
+    searchByPcode = false;
+    searchByCoordinates = true;
+    currentDataType = 'villages'; // Always search villages for coordinates
+    updateContextMessage();
+    searchInput.placeholder = 'Enter coordinates: lat,long (e.g., 16.8661, 96.1951)';
+    searchInput.value = '';
+    suggestionsContainer.style.display = 'none';
+    
+    // Add coordinate search styling
+    const searchContainer = document.querySelector('.search-container');
+    searchContainer.classList.add('coordinate-search');
 });
 
 function toggleLanguage() {
@@ -157,6 +202,10 @@ function searchPcodes(query) {
     query = query.toLowerCase();
     let currentData = pcodeData[currentDataType];
 
+    if (searchByCoordinates) {
+        return searchByLatLong(query);
+    }
+
     if (searchByPcode) {
       return currentData.filter(item => {
         let pcode = null;
@@ -210,6 +259,65 @@ function searchPcodes(query) {
       return scoredMatches.slice(0, 20);
     }
   }
+
+// Function to calculate distance between two points using Haversine formula
+function calculateDistance(lat1, lon1, lat2, lon2) {
+    const R = 6371; // Earth's radius in kilometers
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = 
+        Math.sin(dLat/2) * Math.sin(dLat/2) +
+        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+        Math.sin(dLon/2) * Math.sin(dLon/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    const distance = R * c; // Distance in kilometers
+    return distance;
+}
+
+// Function to search villages by latitude and longitude
+function searchByLatLong(query) {
+    const coordPattern = /^\s*(-?\d+\.?\d*)\s*,\s*(-?\d+\.?\d*)\s*$/;
+    const match = query.match(coordPattern);
+    
+    if (!match) {
+        return []; // Return empty if format is invalid
+    }
+    
+    const searchLat = parseFloat(match[1]);
+    const searchLon = parseFloat(match[2]);
+    
+    // Validate coordinate ranges (roughly for Myanmar)
+    if (searchLat < 9.5 || searchLat > 28.5 || searchLon < 92.0 || searchLon > 101.5) {
+        return []; // Return empty if coordinates are outside Myanmar bounds
+    }
+    
+    const villageData = pcodeData.villages;
+    const radius = 10; // Search within 10km radius
+    
+    const nearbyVillages = villageData
+        .filter(village => {
+            const villageLat = parseFloat(village.Latitude);
+            const villageLon = parseFloat(village.Longitude);
+            
+            if (isNaN(villageLat) || isNaN(villageLon)) {
+                return false;
+            }
+            
+            const distance = calculateDistance(searchLat, searchLon, villageLat, villageLon);
+            return distance <= radius;
+        })
+        .map(village => {
+            const villageLat = parseFloat(village.Latitude);
+            const villageLon = parseFloat(village.Longitude);
+            const distance = calculateDistance(searchLat, searchLon, villageLat, villageLon);
+            return { ...village, distance };
+        })
+        .sort((a, b) => a.distance - b.distance) // Sort by distance
+        .slice(0, 50); // Return top 50 closest villages
+    
+    return nearbyVillages;
+}
+
 function showSuggestions(matches) {
     suggestionsContainer.innerHTML = '';
         if (matches.length > 0) {
@@ -220,7 +328,18 @@ function showSuggestions(matches) {
             let mainText = '';
             let hierarchyText = '';
 
-            if (searchByPcode) {
+            if (searchByCoordinates) {
+                // For coordinate search, always show village with distance
+                mainText = showMyanmarText && match.Village_Name_MMR ?
+                    `${match.Village_Name_MMR} (${match.Village_Name_Eng})` :
+                    match.Village_Name_Eng;
+                hierarchyText = `${match.SR_Name_Eng} > ${match['District/SAZ_Name_Eng']} > ${match.Township_Name_Eng} > ${match.Village_Tract_Name_Eng}`;
+                
+                // Add distance information
+                if (match.distance !== undefined) {
+                    hierarchyText += ` • Distance: ${match.distance.toFixed(2)} km`;
+                }
+            } else if (searchByPcode) {
                 if(currentDataType === 'towns')
                     mainText = `${match.Town_Pcode} - ${match.Town_Name_Eng}`;
                 else if (currentDataType === 'wards')
@@ -266,7 +385,11 @@ function showSuggestions(matches) {
             `;
 
             div.addEventListener('click', () => {
-                searchInput.value = mainText;
+                if (searchByCoordinates) {
+                    searchInput.value = `${match.Latitude}, ${match.Longitude}`;
+                } else {
+                    searchInput.value = mainText;
+                }
                 suggestionsContainer.style.display = 'none';
                 showResult(match);
                 if (match.Latitude && match.Longitude) {
@@ -424,6 +547,10 @@ function showResult(match) {
                     <strong>Coordinates:</strong><br>
                     ${match.Latitude || 'N/A'}, ${match.Longitude || 'N/A'}
                 </div>
+                ${searchByCoordinates && match.distance !== undefined ? 
+                    `<div class="result-item">
+                        <strong>Distance from Search Point:</strong><br>${match.distance.toFixed(2)} km
+                    </div>` : ''}
             `;
         }
     if (postalInfo) {
