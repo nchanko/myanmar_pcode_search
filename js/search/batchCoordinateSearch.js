@@ -17,15 +17,19 @@ export async function processCoordinateCSV(file, radius = 10) {
     
     // Check row limit (excluding header)
     const dataRows = lines.length - 1;
-    if (dataRows > 2000) {
-        throw new Error(`File contains ${dataRows} rows. Maximum allowed is 2000 rows. Please reduce the file size and try again.`);
+    if (dataRows > 1000) {
+        throw new Error(`File contains ${dataRows} rows. Maximum allowed is 1000 rows (excluding header). Please reduce the file size and try again.`);
+    }
+    
+    if (dataRows === 0) {
+        throw new Error('CSV file appears to be empty or contains only headers. Please add coordinate data.');
     }
     
     // Validate required headers
     const requiredHeaders = ['id', 'latitude', 'longitude'];
     const missingHeaders = requiredHeaders.filter(h => !headers.includes(h));
     if (missingHeaders.length > 0) {
-        throw new Error(`Missing required headers: ${missingHeaders.join(', ')}`);
+        throw new Error(`Missing required headers: ${missingHeaders.join(', ')}. Required format: id,latitude,longitude`);
     }
 
     // Get indices of required columns
@@ -50,12 +54,27 @@ export async function processCoordinateCSV(file, radius = 10) {
         console.log(`Processing row ${i}: ID=${id}, Lat=${lat}, Lon=${lon}`);
 
         // Skip invalid coordinates
-        if (!lat || !lon) {
-            console.log(`Skipping row ${i}: missing coordinates`);
+        if (!lat || !lon || !id) {
+            console.log(`Skipping row ${i}: missing data (ID, Lat, or Lon)`);
             continue;
         }
 
-        const coordString = `${lat}, ${lon}`;
+        // Validate numeric coordinates
+        const latitude = parseFloat(lat);
+        const longitude = parseFloat(lon);
+        
+        if (isNaN(latitude) || isNaN(longitude)) {
+            console.log(`Skipping row ${i}: invalid coordinate format`);
+            continue;
+        }
+        
+        // Validate Myanmar coordinate ranges
+        if (latitude < 9.5 || latitude > 28.5 || longitude < 92.0 || longitude > 101.5) {
+            console.log(`Warning row ${i}: coordinates outside Myanmar bounds (Lat: 9.5-28.5, Lon: 92.0-101.5)`);
+            // Continue processing but log warning
+        }
+
+        const coordString = `${latitude}, ${longitude}`;
         console.log(`Searching for coordinates: ${coordString}`);
         
         const matches = searchByLatLong(coordString, radius, 1);

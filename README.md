@@ -18,7 +18,7 @@ A web application for searching Myanmar locations using PCodes (Place Codes) wit
 
 မြန်မာနိုင်ငံရှိ နေရာဒေသများကို PCODE စနစ်ဖြင့် လွယ်ကူစွာ ရှာဖွေနိုင်သော ဝဘ်အပ်ပလီကေးရှင်းတစ်ခု ဖြစ်ပါသည်။ အသုံးပြုသူများအနေဖြင့် မိမိရှာဖွေလိုသော နေရာဒေသများကို ရိုက်ရှာပြီး PCode နှင့် Postal Code တို့ကို ကြည့်ရှုနိုင်သည်။
 
-![Myanmar PCode Search Application](image.png)
+![Myanmar PCode Search Application](assets/image.png)
 
 ## Features / လုပ်ဆောင်ချက်များ
 
