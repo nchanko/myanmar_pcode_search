@@ -1,7 +1,8 @@
 Version 1.2 (June 1 2025)
 - added search by lat, long
 - added upload lat,long csv file and search pcode region,district,township,town and villages.
--improve ui
+- improve ui
+- refactored the code.
 
 Version 1.1 (Feb 14 2025)
 - added with Pcode version 9.6
