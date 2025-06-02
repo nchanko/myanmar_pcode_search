@@ -1,3 +1,7 @@
+Version 1.3 (June 2 2025)
+- Added search by location (using OSM query)
+- fixed missing postal code for village and ward
+
 Version 1.2 (June 1 2025)
 - added search by lat, long
 - added upload lat,long csv file and search pcode region,district,township,town and villages.
