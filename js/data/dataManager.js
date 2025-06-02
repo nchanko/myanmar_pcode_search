@@ -123,7 +123,7 @@ class DataManager {
                 this.loadCSVData('data/pcode9.6_ward_data.csv', 'wards'),
                 this.loadCSVData('data/pcode9.6_village_tract_data.csv', 'villageTracts'),
                 this.loadCSVData('data/pcode9.6_village_data.csv', 'villages'),
-                this.loadPostalData('myanmar_postal_code_data.csv')
+                this.loadPostalData('data/myanmar_postal_code_data.csv')
             ]);
             console.log('All data loaded successfully');
         } catch (error) {

@@ -37,19 +37,35 @@ export class ResultDisplay {
         
         let content = '<h2>Location Details</h2><div class="result-grid">';
         
-        // Generate content based on data type
-        if (mode === 'coordinates' || dataType === 'villages') {
+        // For location and coordinate search, use the actual dataType from the match
+        const actualDataType = (mode === 'location' || mode === 'coordinates') ? match.dataType : dataType;
+        
+        // Generate content based on actual data type
+        if (actualDataType === 'villages') {
             content += this.generateVillageContent(match);
-        } else if (dataType === 'towns') {
+        } else if (actualDataType === 'towns') {
             content += this.generateTownContent(match);
-        } else if (dataType === 'wards') {
+        } else if (actualDataType === 'wards') {
             content += this.generateWardContent(match);
-        } else if (dataType === 'villageTracts') {
+        } else if (actualDataType === 'villageTracts') {
             content += this.generateVillageTractContent(match);
+        } else {
+            // Fallback for coordinate search or unknown types
+            if (mode === 'coordinates') {
+                content += this.generateVillageContent(match);
+            } else if (dataType === 'towns') {
+                content += this.generateTownContent(match);
+            } else if (dataType === 'wards') {
+                content += this.generateWardContent(match);
+            } else if (dataType === 'villageTracts') {
+                content += this.generateVillageTractContent(match);
+            } else {
+                content += this.generateVillageContent(match);
+            }
         }
 
-        // Add postal information if available
-        content += this.generatePostalContent(match, dataType);
+        // Add postal information if available - use actual data type for postal lookup
+        content += this.generatePostalContent(match, actualDataType || dataType);
         
         content += '</div>';
         return content;
@@ -57,6 +73,7 @@ export class ResultDisplay {
 
     generateVillageContent(match) {
         const isCoordinateSearch = searchController.isCoordinateSearch();
+        const isLocationSearch = searchController.isLocationSearch();
         
         return `
             <div class="result-item">
@@ -96,14 +113,20 @@ export class ResultDisplay {
                 <strong>Coordinates:</strong><br>
                 ${match.Latitude || 'N/A'}, ${match.Longitude || 'N/A'}
             </div>
-            ${isCoordinateSearch && match.distance !== undefined ? 
+            ${(isCoordinateSearch || isLocationSearch) && match.distance !== undefined ? 
                 `<div class="result-item">
                     <strong>Distance from Search Point:</strong><br>${match.distance.toFixed(2)} km
+                </div>` : ''}
+            ${isLocationSearch && match.searchedLocation ? 
+                `<div class="result-item">
+                    <strong>Searched Near:</strong><br>${match.searchedLocation.name}
                 </div>` : ''}
         `;
     }
 
     generateTownContent(match) {
+        const isLocationSearch = searchController.isLocationSearch();
+        
         return `
             <div class="result-item">
                 <strong>State/Region:</strong><br>${match.SR_Name_Eng || 'N/A'}
@@ -136,6 +159,14 @@ export class ResultDisplay {
                 <strong>Coordinates:</strong><br>
                 ${match.Latitude || 'N/A'}, ${match.Longitude || 'N/A'}
             </div>
+            ${isLocationSearch && match.distance !== undefined ? 
+                `<div class="result-item">
+                    <strong>Distance from Search Point:</strong><br>${match.distance.toFixed(2)} km
+                </div>` : ''}
+            ${isLocationSearch && match.searchedLocation ? 
+                `<div class="result-item">
+                    <strong>Searched Near:</strong><br>${match.searchedLocation.name}
+                </div>` : ''}
         `;
     }
 

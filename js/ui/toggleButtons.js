@@ -16,6 +16,7 @@ export class ToggleButtons {
         this.villageSearchBtn = document.getElementById('villageSearchBtn');
         this.pcodeSearchBtn = document.getElementById('pcodeSearchBtn');
         this.coordinateSearchBtn = document.getElementById('coordinateSearchBtn');
+        this.locationSearchBtn = document.getElementById('locationSearchBtn');
         this.searchInput = document.querySelector('.search-input');
         this.suggestionsContainer = document.querySelector('.suggestions');
         this.searchContainer = document.querySelector('.search-container');
@@ -52,6 +53,10 @@ export class ToggleButtons {
         this.coordinateSearchBtn?.addEventListener('click', () => {
             this.handleSearchModeChange('coordinates', 'Enter coordinates: lat,long (e.g., 16.8661, 96.1951)');
         });
+
+        this.locationSearchBtn?.addEventListener('click', () => {
+            this.handleSearchModeChange('location', 'Enter location name (e.g., Shwedagon Pagoda, Yangon)');
+        });
     }
 
     handleDataTypeChange(dataType, placeholder) {
@@ -60,15 +65,21 @@ export class ToggleButtons {
         searchController.setDataType(dataType);
         this.updateUI(placeholder);
         this.updateContextMessage();
-        this.searchContainer.classList.remove('coordinate-search');
+        this.searchContainer.classList.remove('coordinate-search', 'location-search');
     }
 
     handleSearchModeChange(mode, placeholder) {
         if (mode === 'pcode') {
             this.setActiveButton(this.pcodeSearchBtn);
+            this.searchContainer.classList.remove('coordinate-search', 'location-search');
         } else if (mode === 'coordinates') {
             this.setActiveButton(this.coordinateSearchBtn);
             this.searchContainer.classList.add('coordinate-search');
+            this.searchContainer.classList.remove('location-search');
+        } else if (mode === 'location') {
+            this.setActiveButton(this.locationSearchBtn);
+            this.searchContainer.classList.add('location-search');
+            this.searchContainer.classList.remove('coordinate-search');
         }
         
         searchController.setSearchMode(mode);
@@ -105,7 +116,10 @@ export class ToggleButtons {
             this.contextMessage.textContent = `Searching ${dataType.charAt(0).toUpperCase() + dataType.slice(1)} PCodes`;
             this.contextMessage.classList.add('active');
         } else if (mode === 'coordinates') {
-            this.contextMessage.textContent = `Searching Villages by Coordinates (Latitude, Longitude)`;
+            this.contextMessage.textContent = `Searching Villages & Towns by Coordinates (Latitude, Longitude)`;
+            this.contextMessage.classList.add('active');
+        } else if (mode === 'location') {
+            this.contextMessage.textContent = `Searching Villages & Towns near Location Name (uses OpenStreetMap)`;
             this.contextMessage.classList.add('active');
         } else {
             this.contextMessage.textContent = ``;
