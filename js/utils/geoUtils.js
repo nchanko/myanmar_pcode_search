@@ -1,5 +1,7 @@
 // Geographic utility functions for coordinate calculations and validation
 
+import { extractCoordsFromGoogleMapsUrl, isGoogleMapsUrl } from './googleMapsParser.js';
+
 /**
  * Calculate distance between two points using Haversine formula
  * @param {number} lat1 - Latitude of first point
@@ -33,11 +35,18 @@ export function isValidMyanmarCoordinate(lat, lon) {
 }
 
 /**
- * Parse coordinate string in various formats
- * @param {string} coordString - Coordinate string (e.g., "16.8661, 96.1951")
+ * Parse coordinate string in various formats or extract from Google Maps URL
+ * @param {string} coordString - Coordinate string or Google Maps URL
  * @returns {object|null} Object with lat and lon properties, or null if invalid
  */
 export function parseCoordinates(coordString) {
+    // First try to extract from Google Maps URL
+    const googleMapsCoords = extractCoordsFromGoogleMapsUrl(coordString);
+    if (googleMapsCoords) {
+        return googleMapsCoords;
+    }
+
+    // If not a Google Maps URL, try regular coordinate parsing
     const coordPattern = /^\s*(-?\d+\.?\d*)\s*,\s*(-?\d+\.?\d*)\s*$/;
     const match = coordString.match(coordPattern);
     
@@ -53,4 +62,22 @@ export function parseCoordinates(coordString) {
     }
     
     return { lat, lon };
-} 
+}
+
+/**
+ * Validate coordinate input format (coordinates or Google Maps URL)
+ * @param {string} input - Input string to validate
+ * @returns {boolean} True if input is valid coordinates or Google Maps URL
+ */
+export function isValidCoordinateInput(input) {
+    if (!input || typeof input !== 'string') {
+        return false;
+    }
+
+    // Try to parse as coordinates (regular or from Google Maps URL)
+    const coords = parseCoordinates(input.trim());
+    return coords !== null;
+}
+
+// Re-export Google Maps functions for convenience
+export { isGoogleMapsUrl } from './googleMapsParser.js'; 
