@@ -1,6 +1,7 @@
 // Coordinate search functionality for latitude/longitude based searches
 
 import { calculateDistance, isValidMyanmarCoordinate, parseCoordinates, isValidCoordinateInput } from '../utils/geoUtils.js';
+import { calculateDistanceOptimized, calculateDistancesBatch } from '../utils/optimizedGeoUtils.js';
 import { isGoogleMapsUrl } from '../utils/googleMapsParser.js';
 import { dataManager } from '../data/dataManager.js';
 
@@ -25,7 +26,74 @@ export function searchByLatLong(query, radius = 10, maxResults = 10) {
         return []; // Return empty if coordinates are outside Myanmar bounds
     }
     
-    // Search towns first, then villages (same as location search)
+    // Check if data is loaded and spatial index is available
+    if (!dataManager.isDataLoaded()) {
+        console.warn('Data not loaded for coordinate search');
+        return searchByLatLongFallback(searchLat, searchLon, radius, maxResults);
+    }
+    
+    // Use optimized spatial index search
+    return searchByLatLongOptimized(searchLat, searchLon, radius, maxResults);
+}
+
+/**
+ * Optimized coordinate search using spatial index
+ * @param {number} searchLat - Search latitude
+ * @param {number} searchLon - Search longitude
+ * @param {number} radius - Search radius in kilometers
+ * @param {number} maxResults - Maximum number of results
+ * @returns {Array} Array of villages and towns with distance information
+ */
+function searchByLatLongOptimized(searchLat, searchLon, radius, maxResults) {
+    console.time(`Coordinate search (optimized): ${searchLat}, ${searchLon}`);
+    
+    // Get spatial index from data manager
+    const spatialIndex = dataManager.getSpatialIndex();
+    
+    // Use spatial index to get candidates (much faster than checking all records)
+    const candidates = spatialIndex.searchWithinRadius(searchLat, searchLon, radius, maxResults * 2);
+    
+    console.log(`Spatial index returned ${candidates.length} candidates for coordinate search`);
+    
+    if (candidates.length === 0) {
+        console.timeEnd(`Coordinate search (optimized): ${searchLat}, ${searchLon}`);
+        return [];
+    }
+    
+    // Convert candidates to format expected by batch distance calculation
+    const candidatesWithCoords = candidates.map(item => ({
+        ...item,
+        lat: item.lat || parseFloat(item.Latitude),
+        lon: item.lon || parseFloat(item.Longitude)
+    }));
+    
+    // Use optimized batch distance calculation
+    const results = calculateDistancesBatch(searchLat, searchLon, candidatesWithCoords, radius);
+    
+    // Add display type metadata
+    const enrichedResults = results.map(item => ({
+        ...item,
+        displayType: item.dataType === 'towns' ? 'Town' : 'Village'
+    }));
+    
+    console.timeEnd(`Coordinate search (optimized): ${searchLat}, ${searchLon}`);
+    console.log(`Coordinate search found ${enrichedResults.length} results`);
+    
+    return enrichedResults.slice(0, maxResults);
+}
+
+/**
+ * Fallback coordinate search (original implementation) when spatial index is not available
+ * @param {number} searchLat - Search latitude
+ * @param {number} searchLon - Search longitude
+ * @param {number} radius - Search radius in kilometers
+ * @param {number} maxResults - Maximum number of results
+ * @returns {Array} Array of villages and towns with distance information
+ */
+function searchByLatLongFallback(searchLat, searchLon, radius, maxResults) {
+    console.time(`Coordinate search (fallback): ${searchLat}, ${searchLon}`);
+    console.warn('Using fallback coordinate search - spatial index not available');
+    
     const allResults = [];
 
     // First search towns within the specified radius
@@ -89,9 +157,12 @@ export function searchByLatLong(query, radius = 10, maxResults = 10) {
     }
 
     // Sort by distance and return top results
-    return allResults
+    const results = allResults
         .sort((a, b) => a.distance - b.distance)
         .slice(0, maxResults);
+    
+    console.timeEnd(`Coordinate search (fallback): ${searchLat}, ${searchLon}`);
+    return results;
 }
 
 /**
