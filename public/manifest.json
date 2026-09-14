@@ -1,0 +1,21 @@
+{
+  "name": "Myanmar PCode Search",
+  "short_name": "MM PCode",
+  "description": "High-performance search and reverse-geocoding for Myanmar Place Codes (MIMU Release 9.6)",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#0f172a",
+  "icons": [
+    {
+      "src": "/assets/favicon-32x32.png",
+      "sizes": "32x32",
+      "type": "image/png"
+    },
+    {
+      "src": "/assets/pcode-myanmar.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+  ]
+}

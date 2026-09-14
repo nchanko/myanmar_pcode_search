@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Batch Coordinate Search - Myanmar PCode</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png">
+    
+    <!-- Papa Parse for CSV handling -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- External stylesheet -->
+    <link rel="stylesheet" href="batch-search-style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo-section">
+                <img src="assets/logo.png" alt="Myanmar PCode Search Logo" class="logo" onerror="this.style.display='none'">
+                <div class="title-group">
+                    <h1>Batch Coordinate Search</h1>
+                    <p class="subtitle">Upload CSV files for bulk location processing</p>
+                </div>
+            </div>
+            <a href="index.html" class="back-button">
+                <i class="fas fa-arrow-left"></i> Back to Main
+            </a>
+        </div>
+
+        <!-- CSV Format Specification Section -->
+        <div class="format-section">
+            <h2><i class="fas fa-file-csv"></i> CSV Format Requirements</h2>
+            <div class="format-requirements">
+                <div class="requirement-item">
+                    <h3>Required Headers (case-insensitive):</h3>
+                    <ul>
+                        <li><strong>id</strong> - Unique identifier for each coordinate pair</li>
+                        <li><strong>latitude</strong> - Latitude in decimal degrees (e.g., 16.8661)</li>
+                        <li><strong>longitude</strong> - Longitude in decimal degrees (e.g., 96.1951)</li>
+                    </ul>
+                </div>
+                
+                <div class="requirement-item">
+                    <h3>Sample CSV Format:</h3>
+                    <div class="csv-sample">
+                        <code>
+id,latitude,longitude<br>
+point_001,16.8661,96.1951<br>
+point_002,21.9162,95.9560<br>
+point_003,19.7475,96.1150<br>
+site_alpha,17.3333,96.5833
+                        </code>
+                    </div>
+                </div>
+
+                <div class="requirement-item">
+                    <h3>Important Notes:</h3>
+                    <ul>
+                        <li>Maximum <strong>1,000 rows</strong> (excluding header)</li>
+                        <li>Coordinates must be in <strong>decimal degrees</strong></li>
+                        <li>Myanmar coordinate ranges: Lat 9.5-28.5, Lon 92.0-101.5</li>
+                        <li>Use comma (,) as delimiter</li>
+                        <li>No empty rows allowed</li>
+                    </ul>
+                </div>
+            </div>
+
+            <button class="sample-button" id="downloadSample">
+                <i class="fas fa-download"></i> Download Sample CSV
+            </button>
+        </div>
+        
+        <div class="upload-section" id="dropZone">
+            <p>Drag and drop your CSV file here or</p>
+            <input type="file" id="fileInput" class="file-input" accept=".csv">
+            <button class="upload-button" onclick="document.getElementById('fileInput').click()">
+                Choose File
+            </button>
+        </div>
+
+        <div class="settings">
+            <label>
+                Search Radius (km):
+                <input type="number" id="radius" value="10" min="1" max="100">
+            </label>
+        </div>
+
+        <div class="error" id="error"></div>
+
+        <div class="progress" id="progress">
+            <div class="progress-bar">
+                <div class="progress-bar-fill" id="progressBarFill"></div>
+            </div>
+            <p id="progressText">Processing...</p>
+        </div>
+
+        <button class="download-button" id="downloadButton">Download Results</button>
+    </div>
+
+    <script type="module">
+        import { processCoordinateCSV, resultsToCSV } from './js/search/batchCoordinateSearch.js';
+        import { dataManager } from './js/data/dataManager.js';
+
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const radiusInput = document.getElementById('radius');
+        const progress = document.getElementById('progress');
+        const progressBarFill = document.getElementById('progressBarFill');
+        const progressText = document.getElementById('progressText');
+        const downloadButton = document.getElementById('downloadButton');
+        const error = document.getElementById('error');
+
+        let dataInitialized = false;
+
+        // Sample CSV download - link to actual file
+        document.getElementById('downloadSample').addEventListener('click', function() {
+            const link = document.createElement('a');
+            link.href = 'data/sample_coordinates.csv';
+            link.download = 'sample_coordinates.csv';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        });
+
+        // Initialize data when page loads
+        async function initializeData() {
+            try {
+                progressText.textContent = 'Loading village data...';
+                progress.style.display = 'block';
+                await dataManager.initializeData();
+                dataInitialized = true;
+                progress.style.display = 'none';
+                console.log('Data initialized successfully');
+            } catch (err) {
+                showError('Failed to load village data. Please refresh the page and try again.');
+                console.error('Data initialization failed:', err);
+            }
+        }
+
+        // Initialize data on page load
+        initializeData();
+
+        // Handle drag and drop
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropZone.addEventListener(eventName, highlight, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, unhighlight, false);
+        });
+
+        function highlight(e) {
+            dropZone.classList.add('dragover');
+        }
+
+        function unhighlight(e) {
+            dropZone.classList.remove('dragover');
+        }
+
+        dropZone.addEventListener('drop', handleDrop, false);
+        fileInput.addEventListener('change', handleFileSelect, false);
+
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            handleFiles(files);
+        }
+
+        function handleFileSelect(e) {
+            const files = e.target.files;
+            handleFiles(files);
+        }
+
+        async function handleFiles(files) {
+            if (files.length === 0) return;
+            
+            if (!dataInitialized) {
+                showError('Village data is still loading. Please wait and try again.');
+                return;
+            }
+            
+            const file = files[0];
+            if (!file.name.endsWith('.csv')) {
+                showError('Please upload a CSV file');
+                return;
+            }
+
+            try {
+                error.style.display = 'none';
+                progress.style.display = 'block';
+                progressBarFill.style.width = '0%';
+                progressText.textContent = 'Processing coordinates...';
+                downloadButton.style.display = 'none';
+                
+                const radius = parseFloat(radiusInput.value);
+                const results = await processCoordinateCSV(file, radius);
+                
+                // Update progress
+                progressBarFill.style.width = '100%';
+                progressText.textContent = `Processing complete! Found ${results.reduce((total, r) => total + r.matches.length, 0)} matches.`;
+                
+                // Enable download
+                const csv = resultsToCSV(results);
+                const blob = new Blob([csv], { type: 'text/csv' });
+                const url = URL.createObjectURL(blob);
+                
+                downloadButton.onclick = () => {
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'coordinate_search_results.csv';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                };
+                
+                downloadButton.style.display = 'block';
+            } catch (err) {
+                showError(err.message);
+            }
+        }
+
+        function showError(message) {
+            error.textContent = message;
+            error.style.display = 'block';
+            progress.style.display = 'none';
+            downloadButton.style.display = 'none';
+        }
+    </script>
+</body>
+</html> 

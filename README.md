@@ -8,19 +8,20 @@ A high-performance web application for searching Myanmar locations using PCodes 
 
 ## Version History / ဗားရှင်းမှတ်တမ်း
 
-**Version 1.4 (Current - Performance Optimized)**
-- 🚀 **Major Performance Improvements**: 50-100x faster search performance using spatial indexing
-- 🔍 **Enhanced Coordinate Search**: Optimized latitude/longitude search with bounding box filtering
-- 📍 **Smart Landmark Search**: Find locations near temples, pagodas, businesses, and landmarks using OSM data
-- 🔄 **Advanced Batch Processing**: Parallel processing for CSV coordinate uploads (up to 1000 coordinates)
-- 📊 **Performance Monitoring**: Real-time search performance analytics and optimization
-- 🎯 **Intelligent Caching**: Distance calculation caching for repeated searches
-- 🔧 **Fallback System**: Automatic fallback to ensure reliability
+**Version 2.0 (Modern TypeScript + REST API + Long-Term Caching)** ⚡
+- 🚀 **REST API Endpoints**: Production-ready developer APIs for `/api/search`, `/api/nearby`, `/api/pcode/:code`, `/api/batch`, and `/api/stats`.
+- 💾 **Long-Term Caching & Bandwidth Reduction**: Clients no longer download 17MB CSV files! Fast sub-millisecond SQLite queries on the backend with HTTP `Cache-Control: s-maxage=31536000` and browser Service Worker offline caching.
+- 💻 **Modern TypeScript Stack**: Rewritten with Next.js App Router, TypeScript, and modern component design system.
+- 🗺️ **Interactive Leaflet Map**: Custom glowing vector pins, click-to-search reverse geocoding, and smooth viewport animations.
+- ⚡ **High-Throughput Batch Processing**: Drag-and-drop CSV batch upload capable of reverse-geocoding 2,000 coordinates in milliseconds.
+- ☁️ **Netlify Ready**: Zero-config deployment with `netlify.toml` and Next.js serverless functions.
 
-**Version 1.3 (June 2 2025)**
-- Added search by location (using OSM query)
-- Fixed missing postal code for village and ward
-- Support Google Maps link in coordinate search
+**Version 1.4 (Performance Optimized - Legacy)**
+- Major Performance Improvements: 50-100x faster search performance using spatial indexing
+- Enhanced Coordinate Search: Optimized latitude/longitude search with bounding box filtering
+- Smart Landmark Search: Find locations near temples, pagodas, businesses, and landmarks using OSM data
+- Advanced Batch Processing: Parallel processing for CSV coordinate uploads
+- Note: Legacy static HTML/JS version is safely preserved in `legacy/`.
 
 **Version 1.2 (June 1 2025)**
 - Added search by lat/long coordinates
