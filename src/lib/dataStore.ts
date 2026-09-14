@@ -22,8 +22,22 @@ interface Meta {
   mimuRelease: string;
 }
 
+// Precomputed lowercase fields for search, kept in a parallel array (not on
+// Place itself) so the extra fields never leak into API JSON responses.
+interface SearchEntry {
+  place: Place;
+  pcode: string;
+  pcodeLower: string;
+  postal: string;
+  postalLower: string;
+  nameEngLower: string;
+  nameMmr: string;
+  tspLower: string;
+}
+
 interface Store {
   places: Place[];
+  searchEntries: SearchEntry[];
   byPcode: Map<string, Place>;
   grid: Map<string, Place[]>;
   meta: Meta;
@@ -52,8 +66,10 @@ function loadStore(): Store {
 
   const byPcode = new Map<string, Place>();
   const grid = new Map<string, Place[]>();
+  const searchEntries: SearchEntry[] = new Array(places.length);
 
-  for (const p of places) {
+  for (let i = 0; i < places.length; i++) {
+    const p = places[i];
     if (p.pcode) byPcode.set(p.pcode, p);
     if (p.lat != null && p.lng != null) {
       const key = gridKey(p.lat, p.lng);
@@ -64,9 +80,22 @@ function loadStore(): Store {
       }
       cell.push(p);
     }
+
+    const pcode = p.pcode || '';
+    const postal = p.postal_code || '';
+    searchEntries[i] = {
+      place: p,
+      pcode,
+      pcodeLower: pcode.toLowerCase(),
+      postal,
+      postalLower: postal.toLowerCase(),
+      nameEngLower: (p.name_eng || '').toLowerCase(),
+      nameMmr: p.name_mmr || '',
+      tspLower: (p.tsp_name || '').toLowerCase()
+    };
   }
 
-  store = { places, byPcode, grid, meta };
+  store = { places, searchEntries, byPcode, grid, meta };
   return store;
 }
 
@@ -76,45 +105,36 @@ function loadStore(): Store {
  * result ordering stays consistent after moving off SQLite.
  */
 export function searchPlaces(query: string, type?: string, limit: number = 30): Place[] {
-  const { places } = loadStore();
+  const { searchEntries } = loadStore();
   const q = query.trim();
   if (!q) return [];
   const qLower = q.toLowerCase();
 
   const scored: { place: Place; relevance: number }[] = [];
 
-  for (const p of places) {
-    if (type && type !== 'all' && p.type !== type) continue;
-
-    const pcode = p.pcode || '';
-    const pcodeLower = pcode.toLowerCase();
-    const postal = p.postal_code || '';
-    const postalLower = postal.toLowerCase();
-    const nameEng = p.name_eng || '';
-    const nameEngLower = nameEng.toLowerCase();
-    const nameMmr = p.name_mmr || '';
-    const tspLower = (p.tsp_name || '').toLowerCase();
+  for (const e of searchEntries) {
+    if (type && type !== 'all' && e.place.type !== type) continue;
 
     const isMatch =
-      pcodeLower.includes(qLower) ||
-      postalLower.includes(qLower) ||
-      nameEngLower.includes(qLower) ||
-      nameMmr.includes(q) ||
-      tspLower.includes(qLower);
+      e.pcodeLower.includes(qLower) ||
+      e.postalLower.includes(qLower) ||
+      e.nameEngLower.includes(qLower) ||
+      e.nameMmr.includes(q) ||
+      e.tspLower.includes(qLower);
 
     if (!isMatch) continue;
 
     let relevance = 10;
-    if (pcode === q) relevance = 100;
-    else if (postal === q) relevance = 95;
-    else if (nameEngLower === qLower || nameMmr === q) relevance = 90;
-    else if (pcodeLower.startsWith(qLower)) relevance = 80;
-    else if (postalLower.startsWith(qLower)) relevance = 75;
-    else if (nameEngLower.startsWith(qLower) || nameMmr.startsWith(q)) relevance = 60;
-    else if (nameEngLower.includes(qLower) || nameMmr.includes(q)) relevance = 40;
-    else if (tspLower.includes(qLower)) relevance = 30;
+    if (e.pcode === q) relevance = 100;
+    else if (e.postal === q) relevance = 95;
+    else if (e.nameEngLower === qLower || e.nameMmr === q) relevance = 90;
+    else if (e.pcodeLower.startsWith(qLower)) relevance = 80;
+    else if (e.postalLower.startsWith(qLower)) relevance = 75;
+    else if (e.nameEngLower.startsWith(qLower) || e.nameMmr.startsWith(q)) relevance = 60;
+    else if (e.nameEngLower.includes(qLower) || e.nameMmr.includes(q)) relevance = 40;
+    else if (e.tspLower.includes(qLower)) relevance = 30;
 
-    scored.push({ place: p, relevance });
+    scored.push({ place: e.place, relevance });
   }
 
   scored.sort((a, b) => {

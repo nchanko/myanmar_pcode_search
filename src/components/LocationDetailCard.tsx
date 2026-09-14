@@ -173,7 +173,12 @@ export function LocationDetailCard({
           <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{t.coordinates}</span>
           <button
             className="copy-chip coords"
-            onClick={() => onCopy(`${place.lat}, ${place.lng}`, 'coords')}
+            onClick={() => {
+              if (place.lat != null && place.lng != null) {
+                onCopy(`${place.lat}, ${place.lng}`, 'coords');
+              }
+            }}
+            disabled={place.lat == null || place.lng == null}
             title={t.copyCoords}
           >
             {copiedKey === 'coords' ? <Check size={12} /> : <Copy size={12} />}

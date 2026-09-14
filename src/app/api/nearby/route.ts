@@ -28,8 +28,11 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  const radiusKm = radiusParam ? Math.min(Math.max(parseFloat(radiusParam) || 10, 0.5), 100) : 10;
-  const limit = limitParam ? Math.min(Math.max(parseInt(limitParam, 10) || 20, 1), 50) : 20;
+  const parsedRadius = radiusParam !== null ? parseFloat(radiusParam) : NaN;
+  const radiusKm = Math.min(Math.max(Number.isFinite(parsedRadius) ? parsedRadius : 10, 0.5), 100);
+
+  const parsedLimit = limitParam !== null ? parseInt(limitParam, 10) : NaN;
+  const limit = Math.min(Math.max(Number.isFinite(parsedLimit) ? parsedLimit : 20, 1), 50);
 
   try {
     const results = getNearbyPlaces(lat, lng, radiusKm, limit);

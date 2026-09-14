@@ -12,7 +12,7 @@ interface NavbarProps {
   offlineCount?: number;
 }
 
-export function Navbar(_props?: NavbarProps) {
+export function Navbar({ isOnline, offlineCount }: NavbarProps = {}) {
   const { t } = useLanguage();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
@@ -43,6 +43,14 @@ export function Navbar(_props?: NavbarProps) {
       </Link>
 
       <div className="nav-actions" ref={menuRef}>
+        {isOnline !== undefined && (
+          <span
+            className={`status-badge ${isOnline ? 'online' : 'offline'}`}
+            title={!isOnline && offlineCount ? `${offlineCount.toLocaleString()} places cached` : undefined}
+          >
+            {isOnline ? t.online : t.offline}
+          </span>
+        )}
         <LanguageToggle />
         <ThemeToggle />
         

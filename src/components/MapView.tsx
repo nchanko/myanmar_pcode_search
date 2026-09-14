@@ -235,7 +235,7 @@ export default function MapView({
         map.setView([activeCoordinates.lat, activeCoordinates.lng], 13);
       }
     });
-  }, [places, selectedPlace, activeCoordinates, activeLandmark]);
+  }, [places, selectedPlace, activeCoordinates, activeLandmark, language]);
 
   return (
     <div ref={mapContainerRef} id="map" className="map-container-inner" />

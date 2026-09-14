@@ -380,6 +380,8 @@ body {
   transition: all 0.15s ease;
 }
 .copy-chip:hover { background: var(--border); }
+.copy-chip:disabled { cursor: not-allowed; opacity: 0.5; }
+.copy-chip:disabled:hover { background: var(--bg-secondary); }
 .copy-chip.pcode { color: var(--primary); background: var(--primary-subtle); border-color: transparent; }
 .copy-chip.postal { color: var(--success); background: var(--success-subtle); border-color: transparent; }
 .copy-chip.coords { color: var(--info); background: var(--info-subtle); border-color: transparent; }
