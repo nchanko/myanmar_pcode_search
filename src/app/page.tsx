@@ -316,7 +316,7 @@ export default function HomePage() {
   return (
     <div className="app-layout">
       {/* Universal Top Navigation Bar */}
-      <Navbar isOnline={isOnline} offlineCount={offlineStatus.count} />
+      <Navbar />
 
       {/* Main 2-Column Application View */}
       <main className="container">
