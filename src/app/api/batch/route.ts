@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { batchLookupCoordinates } from '@/lib/db';
+import { batchLookupCoordinates } from '@/lib/dataStore';
 import Papa from 'papaparse';
 
 export const dynamic = 'force-dynamic';

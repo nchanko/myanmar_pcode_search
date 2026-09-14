@@ -2,6 +2,7 @@
 
 import React, { useEffect, useRef } from 'react';
 import type { Place } from '@/types/pcode';
+import { useLanguage } from '@/context/LanguageContext';
 
 interface MapViewProps {
   places: Place[];
@@ -20,6 +21,7 @@ export default function MapView({
   activeCoordinates,
   activeLandmark
 }: MapViewProps) {
+  const { language } = useLanguage();
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const mapInstanceRef = useRef<any>(null);
   const markersRef = useRef<any[]>([]);
@@ -113,20 +115,21 @@ export default function MapView({
 
         const marker = L.marker([place.lat!, place.lng!], { icon: customIcon }).addTo(map);
 
+        const displayName = language === 'mm' ? (place.name_mmr || place.name_eng) : place.name_eng;
+
         const popupHtml = `
           <div style="font-family: system-ui; padding: 4px; min-width: 180px;">
-            <div style="font-weight: 800; font-size: 14px; margin-bottom: 2px;">${place.name_eng}</div>
-            ${place.name_mmr ? `<div style="color: #4f46e5; font-weight: 700; font-size: 13px; margin-bottom: 4px;">${place.name_mmr}</div>` : ''}
-            <div style="font-size: 12px; font-weight: 600; color: #0f172a; margin-bottom: 6px;">
+            <div style="font-weight: 800; font-size: 14px; margin-bottom: 4px; color: #0f172a;">${displayName}</div>
+            <div style="font-size: 12px; font-weight: 600; color: #475569; margin-bottom: 6px;">
               ${place.tsp_name || ''}${place.sr_name ? ` • ${place.sr_name}` : ''}
             </div>
             <div style="display: flex; gap: 6px; font-size: 11px; flex-wrap: wrap;">
               <span style="background: rgba(99,102,241,0.12); color: #4f46e5; font-weight: 700; padding: 2px 6px; border-radius: 4px; font-family: monospace;">
-                ${place.pcode}
+                PCode: ${place.pcode}
               </span>
               ${place.postal_code ? `
                 <span style="background: rgba(16,185,129,0.12); color: #059669; font-weight: 700; padding: 2px 6px; border-radius: 4px; font-family: monospace;">
-                  📮 ${place.postal_code}
+                  Postal Code: ${place.postal_code}
                 </span>
               ` : ''}
             </div>

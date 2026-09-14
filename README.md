@@ -4,7 +4,7 @@ A high-performance web application for searching Myanmar locations using PCodes 
 
 မြန်မာနိုင်ငံရှိ နေရာဒေသများကို PCODE စနစ်ဖြင့် လွယ်ကူစွာ ရှာဖွေနိုင်သော မြန်နှုန်းမြင့် ဝဘ်အပ်ပလီကေးရှင်းတစ်ခု ဖြစ်ပါသည်။ အသုံးပြုသူများအနေဖြင့် မိမိရှာဖွေလိုသော နေရာဒေသများကို ရိုက်ရှာ၊ ကိုဩဒိနိတ်ဖြင့်ရှာ၊ landmark များဖြင့်ရှာပြီး PCode နှင့် Postal Code တို့ကို ကြည့်ရှုနိုင်သည်။
 
-![Myanmar PCode Search Application](assets/image.png)
+![Myanmar PCode Search Application](legacy/assets/image.png)
 
 ## Version History / ဗားရှင်းမှတ်တမ်း
 
@@ -65,7 +65,7 @@ A high-performance web application for searching Myanmar locations using PCodes 
 ## Technical Documentation / နည်းပညာဆိုင်ရာမှတ်တမ်း
 
 For detailed information about algorithms, performance optimizations, and technical implementation:
-👉 **[View Technical Documentation](technical.html)**
+👉 **[View Technical Documentation](legacy/technical.html)**
 
 ## Data Sources / အချက်အလက်ရင်းမြစ်များ
 
@@ -132,7 +132,7 @@ We welcome contributions to improve Myanmar PCode Search:
 - **[MIMU Place Codes](https://themimu.info/place-codes)** - Official PCode data source
 - **[Myanmar Postal Code GitHub](https://github.com/MyanmarPost/MyanmarPostalCode)** - Postal code repository
 - **[OpenStreetMap Myanmar](https://openstreetmap.org/relation/50371)** - OSM data for Myanmar
-- **[Technical Documentation](technical.html)** - Detailed implementation guide
+- **[Technical Documentation](legacy/technical.html)** - Detailed implementation guide
 
 ---
 

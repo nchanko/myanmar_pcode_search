@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { searchPlaces } from '@/lib/db';
+import { searchPlaces } from '@/lib/dataStore';
 
 export const dynamic = 'force-dynamic';
 

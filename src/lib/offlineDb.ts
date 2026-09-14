@@ -180,11 +180,14 @@ export async function searchOffline(query: string, type?: string, limit: number 
     const mmr = p.name_mmr || '';
     const pcode = (p.pcode || '').toLowerCase();
     const tsp = (p.tsp_name || '').toLowerCase();
+    const postal = (p.postal_code || '').toLowerCase();
 
     let score = 0;
     if (pcode === q) score = 100;
-    else if (pcode.startsWith(q)) score = 80;
+    else if (postal === q) score = 95;
     else if (eng === q || mmr === q) score = 90;
+    else if (pcode.startsWith(q)) score = 80;
+    else if (postal.startsWith(q)) score = 75;
     else if (eng.startsWith(q) || mmr.startsWith(q)) score = 60;
     else if (eng.includes(q) || mmr.includes(q)) score = 40;
     else if (tsp.includes(q)) score = 30;

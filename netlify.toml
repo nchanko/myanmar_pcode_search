@@ -1,5 +1,5 @@
 [build]
-  command = "npm run build:db && npm run build"
+  command = "npm run build:db && npm run build:compact && npm run build"
   publish = ".next"
 
 [build.environment]
@@ -7,6 +7,14 @@
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"
+
+[functions]
+  # The API routes read public/data/pcode-compact.json via a dynamic fs path at
+  # runtime, so the Next.js/Netlify bundler can't trace it automatically —
+  # without this, every /api/* function throws "Dataset not found" in production.
+  # SQLite (data/pcode.db) is only used at build time to generate this JSON,
+  # so it does not need to be bundled into the deployed functions.
+  included_files = ["public/data/pcode-compact.json", "public/data/pcode-meta.json"]
 
 [[headers]]
   for = "/assets/*"

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getPlaceByPCode } from '@/lib/db';
+import { getPlaceByPCode } from '@/lib/dataStore';
 
 export const dynamic = 'force-dynamic';
 

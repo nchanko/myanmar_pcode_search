@@ -13,14 +13,13 @@ import {
   Landmark as LandmarkIcon,
   Store
 } from 'lucide-react';
+import { useLanguage } from '@/context/LanguageContext';
 
 interface SearchControlBoxProps {
   searchQuery: string;
   setSearchQuery: (val: string) => void;
   searchMode: string;
   setSearchMode: (mode: string) => void;
-  showMyanmarName: boolean;
-  setShowMyanmarName: (show: boolean) => void;
   suggestions: any[];
   showSuggestions: boolean;
   setShowSuggestions: (show: boolean) => void;
@@ -36,8 +35,6 @@ export function SearchControlBox({
   setSearchQuery,
   searchMode,
   setSearchMode,
-  showMyanmarName,
-  setShowMyanmarName,
   suggestions,
   showSuggestions,
   setShowSuggestions,
@@ -47,6 +44,7 @@ export function SearchControlBox({
   onSelectSuggestion,
   searchInputRef
 }: SearchControlBoxProps) {
+  const { language, t } = useLanguage();
   const containerRef = useRef<HTMLDivElement | null>(null);
 
   // Close suggestions when clicking outside
@@ -62,14 +60,14 @@ export function SearchControlBox({
 
   const getPlaceholderText = () => {
     switch (searchMode) {
-      case 'town': return 'Search by town name (မြို့အမည်)... e.g. Yangon, မန္တလေး';
-      case 'ward': return 'Search by ward name (ရပ်ကွက်)... e.g. Kyauktada';
-      case 'village_tract': return 'Search by village tract (ကျေးရွာအုပ်စု)...';
-      case 'village': return 'Search by village name (ကျေးရွာ)...';
-      case 'pcode': return 'Search by Place PCode... e.g. MMR013000777';
-      case 'coordinates': return 'Lat, Lng or paste Google Maps URL...';
-      case 'landmark': return 'Search landmarks, pagodas, hotels, malls, shops...';
-      default: return 'Type place name or PCode...';
+      case 'town': return t.placeholderTown;
+      case 'ward': return t.placeholderWard;
+      case 'village_tract': return t.placeholderVT;
+      case 'village': return t.placeholderVillage;
+      case 'pcode': return t.placeholderPcode;
+      case 'coordinates': return t.placeholderCoords;
+      case 'landmark': return t.placeholderLandmark;
+      default: return t.placeholderTown;
     }
   };
 
@@ -81,57 +79,48 @@ export function SearchControlBox({
           className={`toggle-btn ${searchMode === 'town' ? 'active' : ''}`}
           onClick={() => { setSearchMode('town'); if (searchQuery.trim()) onSearch(searchQuery, 'town'); }}
         >
-          <Building2 size={14} /> မြို့ Towns
+          <Building2 size={14} /> {t.townsTab}
         </button>
         <button
           className={`toggle-btn ${searchMode === 'ward' ? 'active' : ''}`}
           onClick={() => { setSearchMode('ward'); if (searchQuery.trim()) onSearch(searchQuery, 'ward'); }}
         >
-          <Home size={14} /> ရပ်ကွက် Wards
+          <Home size={14} /> {t.wardsTab}
         </button>
         <button
           className={`toggle-btn ${searchMode === 'village_tract' ? 'active' : ''}`}
           onClick={() => { setSearchMode('village_tract'); if (searchQuery.trim()) onSearch(searchQuery, 'village_tract'); }}
         >
-          <Trees size={14} /> ကျေးရွာအုပ်စု VT
+          <Trees size={14} /> {t.vtTab}
         </button>
         <button
           className={`toggle-btn ${searchMode === 'village' ? 'active' : ''}`}
           onClick={() => { setSearchMode('village'); if (searchQuery.trim()) onSearch(searchQuery, 'village'); }}
         >
-          <Home size={14} /> ရွာ Villages
+          <Home size={14} /> {t.villagesTab}
         </button>
         <button
           className={`toggle-btn ${searchMode === 'pcode' ? 'active' : ''}`}
           onClick={() => { setSearchMode('pcode'); if (searchQuery.trim()) onSearch(searchQuery, 'pcode'); }}
         >
-          <Hash size={14} /> Pcode
+          <Hash size={14} /> {t.pcodeTab}
         </button>
         <button
           className={`toggle-btn ${searchMode === 'coordinates' ? 'active' : ''}`}
           onClick={() => { setSearchMode('coordinates'); if (searchQuery.trim()) onSearch(searchQuery, 'coordinates'); }}
         >
-          <Navigation size={14} /> Lat/Long
+          <Navigation size={14} /> {t.latlongTab}
         </button>
         <button
           className={`toggle-btn landmark-btn ${searchMode === 'landmark' ? 'active' : ''}`}
           onClick={() => { setSearchMode('landmark'); if (searchQuery.trim()) onSearch(searchQuery, 'landmark'); }}
         >
-          <LandmarkIcon size={14} /> Landmark
+          <LandmarkIcon size={14} /> {t.landmarkTab}
         </button>
       </div>
 
       {/* Search Input Card */}
       <div className="glass-card search-container" ref={containerRef}>
-        <label className="language-toggle">
-          <input
-            type="checkbox"
-            checked={showMyanmarName}
-            onChange={(e) => setShowMyanmarName(e.target.checked)}
-          />
-          <span>🔤 Show Myanmar Name</span>
-        </label>
-
         <div className="search-input-wrapper">
           <input
             ref={searchInputRef}
@@ -168,7 +157,7 @@ export function SearchControlBox({
           {showSuggestions && suggestions.length > 0 && (
             <div className="suggestions-dropdown">
               <div className="suggestion-header">
-                {searchMode === 'landmark' ? '📍 Landmark Results (OpenStreetMap)' : 'Search Suggestions'}
+                {searchMode === 'landmark' ? '📍 Landmark Results (OpenStreetMap)' : (language === 'mm' ? 'အကြံပြုချက်များ' : 'Search Suggestions')}
               </div>
               {suggestions.map((item, idx) => (
                 <div
@@ -183,15 +172,10 @@ export function SearchControlBox({
                     <div className="suggestion-title">
                       {searchMode === 'landmark' ? (
                         <><Store size={14} color="#d97706" /> {item.name}</>
+                      ) : language === 'mm' ? (
+                        item.name_mmr || item.name_eng
                       ) : (
-                        <>
-                          {item.name_eng}
-                          {showMyanmarName && item.name_mmr && (
-                            <span style={{ color: 'var(--primary)', fontWeight: 600, marginLeft: 6 }}>
-                              ({item.name_mmr})
-                            </span>
-                          )}
-                        </>
+                        item.name_eng
                       )}
                     </div>
                     <div className="suggestion-hierarchy">
@@ -205,8 +189,13 @@ export function SearchControlBox({
                       {searchMode === 'landmark' ? (item.category || 'landmark') : item.type}
                     </span>
                     <span style={{ fontSize: 11, fontWeight: 700, fontFamily: 'monospace', color: 'var(--text-secondary)' }}>
-                      {searchMode === 'landmark' ? `${item.lat?.toFixed(3)}, ${item.lng?.toFixed(3)}` : item.pcode}
+                      {searchMode === 'landmark' ? `${item.lat?.toFixed(3)}, ${item.lng?.toFixed(3)}` : `PCode: ${item.pcode}`}
                     </span>
+                    {item.postal_code && searchMode !== 'landmark' && (
+                      <span style={{ fontSize: 11, fontWeight: 700, fontFamily: 'monospace', color: '#059669', background: 'rgba(16, 185, 129, 0.1)', padding: '2px 5px', borderRadius: '4px' }}>
+                        Postal: {item.postal_code}
+                      </span>
+                    )}
                   </div>
                 </div>
               ))}

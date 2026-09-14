@@ -67,6 +67,8 @@ console.log('Loading Postal Code data...');
 const postalCsv = fs.readFileSync(path.resolve('data/myanmar_postal_code_data.csv'), 'utf8');
 const postalParsed = Papa.parse<Record<string, string>>(postalCsv, { header: true, skipEmptyLines: true });
 const postalLookup = new Map<string, string>(); // pcode -> postal_code
+const townPostalLookup = new Map<string, string>(); // 12-char town pcode prefix -> postal_code
+const tspPostalLookup = new Map<string, string>(); // lowercase township name -> postal_code
 
 const insertPostal = db.prepare(`
   INSERT INTO postal_codes (postal_code, region, township, name, vt_pcode, ward_pcode)
@@ -77,14 +79,27 @@ for (const row of postalParsed.data) {
   const code = (row['Postal Code'] || '').trim();
   const vt = (row['VT_Pcode'] || '').trim();
   const ward = (row['Ward_Pcode'] || '').trim();
+  const tsp = (row['Township'] || '').trim().toLowerCase();
   if (code) {
     insertPostal.run(code, row['Region'] || '', row['Township'] || '', row['Village Tract/ Ward'] || '', vt, ward);
     if (vt) postalLookup.set(vt, code);
-    if (ward) postalLookup.set(ward, code);
+    if (ward) {
+      postalLookup.set(ward, code);
+      if (ward.length >= 12) {
+        const townPrefix = ward.substring(0, 12);
+        if (!townPostalLookup.has(townPrefix)) {
+          townPostalLookup.set(townPrefix, code);
+        }
+      }
+    }
+    if (tsp && !tspPostalLookup.has(tsp)) {
+      tspPostalLookup.set(tsp, code);
+    }
   }
 }
-console.log(`Loaded ${postalParsed.data.length} postal code records.`);
+console.log(`Loaded ${postalParsed.data.length} postal code entries.`);
 
+// Prepare insert statements
 const insertPlace = db.prepare(`
   INSERT INTO places (
     type, pcode, name_eng, name_mmr, sr_pcode, sr_name, district_pcode, district_name,
@@ -101,7 +116,8 @@ for (const r of towns.data) {
   if (!pcode) continue;
   const lat = parseFloat(r['Latitude'] || '') || null;
   const lng = parseFloat(r['Longitude'] || '') || null;
-  const postal = postalLookup.get(pcode) || null;
+  const tsp = (r['Township_Name_Eng'] || '').trim().toLowerCase();
+  const postal = postalLookup.get(pcode) || townPostalLookup.get(pcode) || tspPostalLookup.get(tsp) || null;
   insertPlace.run(
     'town', pcode, r['Town_Name_Eng'] || '', r['Town_Name_MMR'] || '',
     r['SR_Pcode'] || '', r['SR_Name_Eng'] || '',

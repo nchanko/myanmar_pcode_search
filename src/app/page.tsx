@@ -9,6 +9,7 @@ import { Navbar } from '@/components/Navbar';
 import { FooterBar } from '@/components/FooterBar';
 import { SearchControlBox } from '@/components/SearchControlBox';
 import { LocationDetailCard } from '@/components/LocationDetailCard';
+import { useLanguage } from '@/context/LanguageContext';
 import type { Place } from '@/types/pcode';
 
 // Dynamic import for Leaflet map to avoid SSR issues
@@ -31,9 +32,10 @@ const MapView = dynamic(() => import('@/components/MapView'), {
 });
 
 export default function HomePage() {
+  const { language, t } = useLanguage();
   const [searchQuery, setSearchQuery] = useState('');
   const [searchMode, setSearchMode] = useState<string>('town');
-  const [showMyanmarName, setShowMyanmarName] = useState(true);
+  const [showNearby, setShowNearby] = useState(false);
   const [results, setResults] = useState<Place[]>([]);
   const [selectedPlace, setSelectedPlace] = useState<Place | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -292,7 +294,8 @@ export default function HomePage() {
     }
   };
 
-  const handleMapClick = (coords: { lat: number; lng: number }) => {
+  const handleMapClick = (lat: number, lng: number) => {
+    const coords = { lat, lng };
     setActiveCoords(coords);
     setActiveLandmark(null);
     setSearchQuery(`${coords.lat.toFixed(5)}, ${coords.lng.toFixed(5)}`);
@@ -325,8 +328,6 @@ export default function HomePage() {
             setSearchQuery={setSearchQuery}
             searchMode={searchMode}
             setSearchMode={setSearchMode}
-            showMyanmarName={showMyanmarName}
-            setShowMyanmarName={setShowMyanmarName}
             suggestions={suggestions}
             showSuggestions={showSuggestions}
             setShowSuggestions={setShowSuggestions}
@@ -341,56 +342,90 @@ export default function HomePage() {
           {selectedPlace && (
             <LocationDetailCard
               place={selectedPlace}
-              showMyanmarName={showMyanmarName}
               activeLandmark={activeLandmark}
               copiedKey={copiedKey}
               onCopy={copyValue}
             />
           )}
 
-          {/* Results List: Only render other results to avoid duplicate cards */}
+          {/* Optional Collapsible Nearby / Matching Places */}
           {otherResults.length > 0 && (
-            <div className="results-list">
-              <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)', padding: '4px 2px' }}>
-                Other Matching Places ({otherResults.length})
-              </div>
-              {otherResults.map((place) => (
-                <div
-                  key={`${place.type}-${place.pcode}-${place.id}`}
-                  className="place-card"
-                  onClick={() => {
-                    setSelectedPlace(place);
-                    if (place.lat && place.lng) setActiveCoords({ lat: place.lat, lng: place.lng });
-                  }}
-                >
-                  <div className="place-card-top">
-                    <div>
-                      <div className="place-card-name">{place.name_eng}</div>
-                      {showMyanmarName && place.name_mmr && (
-                        <div className="place-card-burmese">{place.name_mmr}</div>
-                      )}
-                    </div>
-                    <span className="type-pill">{place.type.replace('_', ' ')}</span>
-                  </div>
-
-                  <div className="place-card-hierarchy">
-                    {[place.tsp_name, place.district_name, place.sr_name].filter(Boolean).join(' • ')}
-                  </div>
-
-                  <div className="place-card-pills">
-                    <span className="place-pill pcode">{place.pcode}</span>
-                    {place.postal_code && (
-                      <span className="place-pill postal">📮 {place.postal_code}</span>
-                    )}
-                    {place.distance_km != null && (
-                      <span className="place-pill distance">
-                        <Navigation size={10} style={{ display: 'inline', marginRight: 2 }} />
-                        {place.distance_km} km away
-                      </span>
-                    )}
-                  </div>
+            <div style={{ marginTop: '12px' }}>
+              <button
+                type="button"
+                className="toggle-nearby-banner"
+                onClick={() => setShowNearby(!showNearby)}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <Navigation size={14} color="var(--primary)" />
+                  <span style={{ fontWeight: 700, fontSize: '13px' }}>
+                    {activeLandmark || searchMode === 'coordinates' || (activeCoords && !searchQuery)
+                      ? `${t.nearbyPlaces} (${otherResults.length})`
+                      : `${t.matchingPlaces} (${otherResults.length})`}
+                  </span>
                 </div>
-              ))}
+                <span style={{ fontSize: '12px', color: 'var(--primary)', fontWeight: 700 }}>
+                  {showNearby ? (language === 'mm' ? 'ဝှက်မည် ▲' : 'Hide ▲') : (language === 'mm' ? 'ကြည့်မည် ▼' : 'View ▼')}
+                </span>
+              </button>
+
+              {showNearby && (
+                <div className="results-list" style={{ marginTop: '10px' }}>
+                  {otherResults.map((place) => (
+                    <div
+                      key={`${place.type}-${place.pcode}-${place.id}`}
+                      className="place-card"
+                      onClick={() => {
+                        setSelectedPlace(place);
+                        if (place.lat && place.lng) setActiveCoords({ lat: place.lat, lng: place.lng });
+                      }}
+                    >
+                      <div className="place-card-top">
+                        <div>
+                          <div className="place-card-name">
+                            {language === 'mm' ? (place.name_mmr || place.name_eng) : place.name_eng}
+                          </div>
+                          <div className="place-card-hierarchy">
+                            {[place.vt_name ? `${place.vt_name} VT` : place.town_name, place.tsp_name, place.sr_name].filter(Boolean).join(' • ')}
+                          </div>
+                        </div>
+                        <span className="type-pill">
+                          {place.type === 'village'
+                            ? (language === 'mm' ? 'ကျေးရွာ' : 'VILLAGE')
+                            : place.type === 'ward'
+                            ? (language === 'mm' ? 'ရပ်ကွက်' : 'WARD')
+                            : place.type === 'town'
+                            ? (language === 'mm' ? 'မြို့' : 'TOWN')
+                            : (language === 'mm' ? 'ကျေးရွာအုပ်စု' : 'VILLAGE TRACT')}
+                        </span>
+                      </div>
+
+                      <div className="place-card-pills">
+                        <span className="place-pill pcode">
+                          {place.type === 'village'
+                            ? t.villagePcode
+                            : place.type === 'ward'
+                            ? t.wardPcode
+                            : place.type === 'town'
+                            ? t.townPcode
+                            : t.vtPcode} {place.pcode}
+                        </span>
+                        {place.postal_code && (
+                          <span className="place-pill postal">
+                            {t.postalCodeLabel} {place.postal_code}
+                          </span>
+                        )}
+                        {place.distance_km != null && (
+                          <span className="place-pill distance">
+                            <Navigation size={10} style={{ display: 'inline', marginRight: 2 }} />
+                            {place.distance_km} {t.kmAway}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
         </div>
