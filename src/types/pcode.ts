@@ -1,5 +1,9 @@
 export type PlaceType = 'town' | 'ward' | 'village_tract' | 'village';
 
+// Where lat/lng came from. 'mimu' is a surveyed point from the MIMU Pcode
+// list; the others are approximate points filled in by scripts/build-data.ts.
+export type CoordSource = 'mimu' | 'boundary' | 'villages' | 'town';
+
 export interface Place {
   id: number;
   type: PlaceType;
@@ -18,35 +22,9 @@ export interface Place {
   vt_name: string | null;
   lat: number | null;
   lng: number | null;
+  coord_source: CoordSource | null;
   postal_code: string | null;
   distance_km?: number;
-}
-
-export interface PostalCodeInfo {
-  postal_code: string;
-  region: string;
-  township: string;
-  name: string;
-  vt_pcode: string | null;
-  ward_pcode: string | null;
-}
-
-export interface SearchResponse {
-  query: string;
-  type?: string;
-  total: number;
-  count: number;
-  results: Place[];
-  executionTimeMs: number;
-}
-
-export interface NearbyResponse {
-  latitude: number;
-  longitude: number;
-  radiusKm: number;
-  count: number;
-  results: Place[];
-  executionTimeMs: number;
 }
 
 export interface BatchItem {
@@ -65,11 +43,4 @@ export interface BatchResultItem extends BatchItem {
   postal_code?: string;
   distance_km?: number;
   status: 'FOUND' | 'NOT_FOUND' | 'INVALID_COORDS';
-}
-
-export interface BatchResponse {
-  totalProcessed: number;
-  successCount: number;
-  results: BatchResultItem[];
-  executionTimeMs: number;
 }

@@ -18,15 +18,13 @@
 .env*.local
 .env
 
-# Vercel
-.vercel
+# Netlify CLI
+.netlify
 
 # TypeScript
 *.tsbuildinfo
 next-env.d.ts
 
-# Test screenshots
+# Test screenshots (keep the app's own images)
 *.png
 !public/assets/*.png
-!assets/*.png
-!legacy/assets/*.png

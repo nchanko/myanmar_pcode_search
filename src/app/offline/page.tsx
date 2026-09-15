@@ -16,7 +16,10 @@ import {
   ShieldCheck,
   Compass
 } from 'lucide-react';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import { isOfflineReady, syncOfflineData, clearOfflineData } from '@/lib/offlineDb';
+import { DATA_INFO } from '@/lib/appInfo';
+import { formatNumber } from '@/lib/format';
 
 export default function OfflinePage() {
   const [offlineStatus, setOfflineStatus] = useState<{ ready: boolean; count: number; lastSynced?: string }>({
@@ -89,6 +92,9 @@ export default function OfflinePage() {
             <span>Offline Database Storage / အော့ဖ်လိုင်းဒေတာ သိမ်းဆည်းခြင်း</span>
           </div>
         </div>
+        <div className="nav-actions">
+          <ThemeToggle />
+        </div>
       </header>
 
       {/* Main Container */}
@@ -96,7 +102,7 @@ export default function OfflinePage() {
         <div className="doc-hero">
           <h1>Offline Database Storage (IndexedDB)</h1>
           <p>
-            Download Myanmar PCode data (90,676 places & 17,331 postal codes) directly into your browser.
+            Download Myanmar PCode data ({formatNumber(DATA_INFO.totalPlaces, 'en')} places & {formatNumber(DATA_INFO.postalCodes, 'en')} postal codes) directly into your browser.
             Once cached, all searches, coordinate lookups, and batch CSV processing will work 100% offline without any internet connection.
           </p>
         </div>
@@ -132,9 +138,9 @@ export default function OfflinePage() {
               className="toggle-btn"
               onClick={toggleForceOffline}
               style={{
-                background: isOfflineForced ? '#f59e0b' : 'white',
-                color: isOfflineForced ? 'white' : 'var(--text-primary)',
-                border: '1px solid rgba(0,0,0,0.1)'
+                background: isOfflineForced ? 'var(--warning)' : 'var(--bg-secondary)',
+                color: isOfflineForced ? '#ffffff' : 'var(--text-primary)',
+                border: '1px solid var(--border)'
               }}
             >
               {isOfflineForced ? 'Switch to Online Mode' : 'Simulate / Force Offline'}
@@ -159,11 +165,11 @@ export default function OfflinePage() {
               </div>
               <div style={{ fontSize: '18px', fontWeight: 800, color: 'var(--text-primary)', marginTop: '2px' }}>
                 {offlineStatus.ready ? (
-                  <span style={{ color: '#059669', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span style={{ color: 'var(--success-text)', display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <CheckCircle2 size={18} /> Cached & Ready ({offlineStatus.count.toLocaleString()} places)
                   </span>
                 ) : (
-                  <span style={{ color: '#d97706', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span style={{ color: 'var(--warning-text)', display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <AlertCircle size={18} /> Not Downloaded
                   </span>
                 )}
@@ -198,7 +204,7 @@ export default function OfflinePage() {
                 ) : (
                   <>
                     <Download size={16} />
-                    <span>{offlineStatus.ready ? 'Re-download / Update (2.4 MB)' : 'Download Offline Database (2.4 MB)'}</span>
+                    <span>{offlineStatus.ready ? 'Re-download / Update (~3.2 MB)' : 'Download Offline Database (~3.2 MB)'}</span>
                   </>
                 )}
               </button>
@@ -223,11 +229,11 @@ export default function OfflinePage() {
           {/* Sync Progress Bar */}
           {isSyncing && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12.5px', color: '#4b5563' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12.5px', color: 'var(--text-secondary)' }}>
                 <span>{syncMessage}</span>
                 <span>{syncProgress}%</span>
               </div>
-              <div style={{ height: '8px', background: '#e2e8f0', borderRadius: '4px', overflow: 'hidden' }}>
+              <div style={{ height: '8px', background: 'var(--bg-secondary)', borderRadius: '4px', overflow: 'hidden' }}>
                 <div style={{
                   width: `${syncProgress}%`,
                   height: '100%',
@@ -242,7 +248,7 @@ export default function OfflinePage() {
             <div style={{
               padding: '12px',
               background: 'rgba(239, 68, 68, 0.1)',
-              color: '#dc2626',
+              color: '#ef4444',
               borderRadius: '8px',
               fontSize: '13px'
             }}>
@@ -263,7 +269,7 @@ export default function OfflinePage() {
               <Zap size={20} color="#f59e0b" />
               <h3 style={{ fontSize: '16px', fontWeight: 700 }}>Zero Network Latency</h3>
             </div>
-            <p style={{ fontSize: '13.5px', color: '#4b5563', lineHeight: 1.5 }}>
+            <p style={{ fontSize: '13.5px', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
               Searches are performed directly in memory using your browser&apos;s IndexedDB indices. Typical response times are under 5ms.
             </p>
           </div>
@@ -273,7 +279,7 @@ export default function OfflinePage() {
               <ShieldCheck size={20} color="#10b981" />
               <h3 style={{ fontSize: '16px', fontWeight: 700 }}>Works 100% Offline</h3>
             </div>
-            <p style={{ fontSize: '13.5px', color: '#4b5563', lineHeight: 1.5 }}>
+            <p style={{ fontSize: '13.5px', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
               Ideal for humanitarian field workers, logistics teams, and areas in Myanmar with limited or unstable connectivity.
             </p>
           </div>
@@ -283,7 +289,7 @@ export default function OfflinePage() {
               <Compass size={20} color="#6366f1" />
               <h3 style={{ fontSize: '16px', fontWeight: 700 }}>Spatial Coordinate Search</h3>
             </div>
-            <p style={{ fontSize: '13.5px', color: '#4b5563', lineHeight: 1.5 }}>
+            <p style={{ fontSize: '13.5px', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
               Uses the haversine formula inside the browser to calculate nearest villages and towns even without internet access.
             </p>
           </div>

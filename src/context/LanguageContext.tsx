@@ -1,14 +1,14 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import type { CoordSource, PlaceType } from '@/types/pcode';
 
 export type AppLanguage = 'en' | 'mm';
 
 export interface Translations {
   appName: string;
+  /** Template: the Navbar fills in {version} and {count}. */
   placesCount: string;
-  online: string;
-  offline: string;
   batchNav: string;
   offlineNav: string;
   apiDocsNav: string;
@@ -20,6 +20,7 @@ export interface Translations {
   vtTab: string;
   villagesTab: string;
   pcodeTab: string;
+  postalTab: string;
   latlongTab: string;
   landmarkTab: string;
   placeholderTown: string;
@@ -27,44 +28,42 @@ export interface Translations {
   placeholderVT: string;
   placeholderVillage: string;
   placeholderPcode: string;
+  placeholderPostal: string;
   placeholderCoords: string;
   placeholderLandmark: string;
+  suggestionsHeader: string;
+  placeType: Record<PlaceType, string>;
+  typePcode: Record<PlaceType, string>;
   coordinates: string;
   unavailable: string;
+  approxCoords: string;
+  coordSource: Record<Exclude<CoordSource, 'mimu'>, string>;
   stateRegion: string;
   district: string;
   township: string;
   town: string;
   villageTract: string;
-  villagePcode: string;
-  wardPcode: string;
-  townPcode: string;
-  vtPcode: string;
-  pcodeLabel: string;
   postalCodeLabel: string;
   copyPcode: string;
   copyPostal: string;
   copyCoords: string;
-  copied: string;
   kmAway: string;
   searchedLandmark: string;
   nearbyPlaces: string;
-  nearbySubtitle: string;
   matchingPlaces: string;
-  matchingSubtitle: string;
-  showNearbyBtn: string;
-  hideNearbyBtn: string;
+  showList: string;
+  hideList: string;
+  footerSource: string;
   footerDataMimu: string;
   footerDataPost: string;
-  footerDisclaimer: string;
+  footerDataBoundaries: string;
+  footerMadeBy: string;
 }
 
 const translations: Record<AppLanguage, Translations> = {
   en: {
     appName: 'Myanmar PCode Search',
-    placesCount: 'MIMU 9.6 • 90,676 Places',
-    online: 'Online',
-    offline: 'Offline',
+    placesCount: 'MIMU {version} • {count} Places',
     batchNav: 'Batch CSV',
     offlineNav: 'Offline DB',
     apiDocsNav: 'API Docs',
@@ -76,6 +75,7 @@ const translations: Record<AppLanguage, Translations> = {
     vtTab: 'Village Tracts',
     villagesTab: 'Villages',
     pcodeTab: 'PCode',
+    postalTab: 'Postal Code',
     latlongTab: 'Lat/Long',
     landmarkTab: 'Landmark',
     placeholderTown: 'Search by town name... e.g. Yangon, Mandalay',
@@ -83,42 +83,44 @@ const translations: Record<AppLanguage, Translations> = {
     placeholderVT: 'Search village tract... e.g. Taung Gyi',
     placeholderVillage: 'Search village name... e.g. Kan Gyi',
     placeholderPcode: 'Enter PCode... e.g. MMR013001, 150001',
+    placeholderPostal: 'Enter postal code... e.g. 1118001, or 1118 for a township',
     placeholderCoords: 'Paste coordinates or Google Maps link...',
     placeholderLandmark: 'Search landmark... e.g. Shwedagon Pagoda, Junction City',
+    suggestionsHeader: 'Search Suggestions',
+    placeType: { town: 'TOWN', ward: 'WARD', village_tract: 'VILLAGE TRACT', village: 'VILLAGE' },
+    typePcode: { town: 'Town PCode:', ward: 'Ward PCode:', village_tract: 'VT PCode:', village: 'Village PCode:' },
     coordinates: 'Coordinates:',
     unavailable: 'Unavailable',
+    approxCoords: 'Approximate',
+    coordSource: {
+      boundary: 'centre of the boundary area',
+      villages: 'middle of its villages',
+      town: "the town's location"
+    },
     stateRegion: 'State/Region:',
     district: 'District:',
     township: 'Township:',
     town: 'Town:',
     villageTract: 'Village Tract:',
-    villagePcode: 'Village PCode:',
-    wardPcode: 'Ward PCode:',
-    townPcode: 'Town PCode:',
-    vtPcode: 'VT PCode:',
-    pcodeLabel: 'PCode:',
     postalCodeLabel: 'Postal Code:',
     copyPcode: 'Copy PCode',
     copyPostal: 'Copy Postal Code',
     copyCoords: 'Copy Coordinates',
-    copied: 'Copied',
     kmAway: 'km away',
     searchedLandmark: 'Searched Landmark:',
     nearbyPlaces: 'Nearby Places',
-    nearbySubtitle: 'Surrounding places within 15 km, ordered by nearest distance',
     matchingPlaces: 'Matching Places',
-    matchingSubtitle: 'Places matching by name, township, or code',
-    showNearbyBtn: 'View Nearby Places',
-    hideNearbyBtn: 'Hide Nearby Places',
+    showList: 'View ▼',
+    hideList: 'Hide ▲',
+    footerSource: 'Source:',
     footerDataMimu: 'MIMU Place Codes',
     footerDataPost: 'Myanmar Postal Code',
-    footerDisclaimer: 'For humanitarian, development and reference purposes.'
+    footerDataBoundaries: 'OCHA Boundaries',
+    footerMadeBy: 'Made by'
   },
   mm: {
     appName: 'မြန်မာ PCode ရှာဖွေရေး',
-    placesCount: 'MIMU 9.6 • နေရာပေါင်း ၉၀,၆၇၆',
-    online: 'အွန်လိုင်း',
-    offline: 'အော့ဖ်လိုင်း',
+    placesCount: 'MIMU {version} • နေရာပေါင်း {count}',
     batchNav: 'အစုလိုက် CSV',
     offlineNav: 'အော့ဖ်လိုင်း DB',
     apiDocsNav: 'API မှတ်တမ်း',
@@ -130,6 +132,7 @@ const translations: Record<AppLanguage, Translations> = {
     vtTab: 'ကျေးရွာအုပ်စု',
     villagesTab: 'ကျေးရွာ',
     pcodeTab: 'PCode',
+    postalTab: 'စာတိုက်သင်္ကေတ',
     latlongTab: 'ကိုဩဒိနိတ်',
     landmarkTab: 'ထင်ရှားသောနေရာ',
     placeholderTown: 'မြို့အမည် ရိုက်ထည့်ရှာဖွေပါ... ဥပမာ - ရန်ကုန်၊ မန္တလေး',
@@ -137,36 +140,45 @@ const translations: Record<AppLanguage, Translations> = {
     placeholderVT: 'ကျေးရွာအုပ်စု ရိုက်ထည့်ရှာဖွေပါ... ဥပမာ - တောင်ကြီး',
     placeholderVillage: 'ကျေးရွာအမည် ရိုက်ထည့်ရှာဖွေပါ... ဥပမာ - ကန်ကြီး',
     placeholderPcode: 'PCode ရိုက်ထည့်ပါ... ဥပမာ - MMR013001, 150001',
+    placeholderPostal: 'စာတိုက်သင်္ကေတ ရိုက်ထည့်ပါ... ဥပမာ - 1118001',
     placeholderCoords: 'ကိုဩဒိနိတ် သို့မဟုတ် Google Maps Link ထည့်ပါ...',
     placeholderLandmark: 'ထင်ရှားသောနေရာ ရိုက်ထည့်ပါ... ဥပမာ - ရွှေတိဂုံဘုရား',
+    suggestionsHeader: 'အကြံပြုချက်များ',
+    placeType: { town: 'မြို့', ward: 'ရပ်ကွက်', village_tract: 'ကျေးရွာအုပ်စု', village: 'ကျေးရွာ' },
+    typePcode: {
+      town: 'မြို့ PCode:',
+      ward: 'ရပ်ကွက် PCode:',
+      village_tract: 'ကျေးရွာအုပ်စု PCode:',
+      village: 'ကျေးရွာ PCode:'
+    },
     coordinates: 'ကိုဩဒိနိတ်:',
     unavailable: 'မရှိပါ',
+    approxCoords: 'ခန့်မှန်းတည်နေရာ',
+    coordSource: {
+      boundary: 'နယ်နိမိတ်ဧရိယာ၏ အလယ်ဗဟို',
+      villages: 'ကျေးရွာများ၏ အလယ်',
+      town: 'မြို့၏ တည်နေရာ'
+    },
     stateRegion: 'တိုင်း/ပြည်နယ်:',
     district: 'ခရိုင်:',
     township: 'မြို့နယ်:',
     town: 'မြို့:',
     villageTract: 'ကျေးရွာအုပ်စု:',
-    villagePcode: 'ကျေးရွာ PCode:',
-    wardPcode: 'ရပ်ကွက် PCode:',
-    townPcode: 'မြို့ PCode:',
-    vtPcode: 'ကျေးရွာအုပ်စု PCode:',
-    pcodeLabel: 'PCode:',
     postalCodeLabel: 'စာတိုက်သင်္ကေတ:',
     copyPcode: 'PCode ကူးယူရန်',
     copyPostal: 'စာတိုက်သင်္ကေတ ကူးယူရန်',
     copyCoords: 'ကိုဩဒိနိတ် ကူးယူရန်',
-    copied: 'ကူးယူပြီး',
     kmAway: 'km အကွာ',
     searchedLandmark: 'ရှာဖွေထားသောနေရာ:',
     nearbyPlaces: 'အနီးအနားရှိ နေရာများ',
-    nearbySubtitle: '၁၅ ကီလိုမီတာအတွင်း အနီးဆုံးမှစ၍ စီစဉ်ထားပါသည်',
     matchingPlaces: 'ကိုက်ညီသည့် နေရာများ',
-    matchingSubtitle: 'အမည်၊ မြို့နယ် သို့မဟုတ် ကုဒ်ဖြင့် ကိုက်ညီသည့် နေရာများ',
-    showNearbyBtn: 'အနီးအနားရှိ နေရာများ ကြည့်မည်',
-    hideNearbyBtn: 'အနီးအနားရှိ နေရာများ ပိတ်မည်',
+    showList: 'ကြည့်မည် ▼',
+    hideList: 'ဝှက်မည် ▲',
+    footerSource: 'ရင်းမြစ်:',
     footerDataMimu: 'MIMU နေရာကုဒ်များ',
     footerDataPost: 'မြန်မာစာတိုက်သင်္ကေတ',
-    footerDisclaimer: 'လူသားချင်းစာနာမှု၊ ဖွံ့ဖြိုးတိုးတက်ရေးနှင့် ရည်ညွှန်းကိုးကားရန်အတွက် ဖြစ်ပါသည်။'
+    footerDataBoundaries: 'OCHA နယ်နိမိတ်',
+    footerMadeBy: 'ဖန်တီးသူ -'
   }
 };
 

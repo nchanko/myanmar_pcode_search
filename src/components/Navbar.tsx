@@ -6,9 +6,19 @@ import { UploadCloud, Database, FileText, BookOpen, Menu, X, ChevronRight } from
 import { ThemeToggle } from './ThemeToggle';
 import { LanguageToggle } from './LanguageToggle';
 import { useLanguage } from '@/context/LanguageContext';
+import { DATA_INFO } from '@/lib/appInfo';
+import { formatNumber } from '@/lib/format';
+
+// `title` is a translation key; `color` tints the icon.
+const MENU_ITEMS = [
+  { href: '/batch', icon: UploadCloud, color: '#10b981', title: 'batchNav', desc: 'CSV Geocoding' },
+  { href: '/offline', icon: Database, color: '#6366f1', title: 'offlineNav', desc: 'Offline Database' },
+  { href: '/docs', icon: FileText, color: '#06b6d4', title: 'apiDocsNav', desc: 'REST API Documentation' },
+  { href: '/guide', icon: BookOpen, color: '#8b5cf6', title: 'guideNav', desc: 'User Manual & Tips' }
+] as const;
 
 export function Navbar() {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
 
@@ -25,6 +35,10 @@ export function Navbar() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isMenuOpen]);
 
+  const subtitle = t.placesCount
+    .replace('{version}', DATA_INFO.version)
+    .replace('{count}', formatNumber(DATA_INFO.totalPlaces, language));
+
   return (
     <header className="navbar">
       <Link href="/" className="nav-brand">
@@ -33,14 +47,14 @@ export function Navbar() {
         </div>
         <div>
           <div className="brand-title">{t.appName}</div>
-          <div className="brand-subtitle">{t.placesCount}</div>
+          <div className="brand-subtitle">{subtitle}</div>
         </div>
       </Link>
 
       <div className="nav-actions" ref={menuRef}>
         <LanguageToggle />
         <ThemeToggle />
-        
+
         {/* Menu button for tools & other pages */}
         <button
           type="button"
@@ -53,71 +67,24 @@ export function Navbar() {
           <span className="nav-menu-text">{t.menu}</span>
         </button>
 
-        {/* Dropdown Menu */}
         {isMenuOpen && (
           <div className="nav-menu-dropdown">
             <div className="nav-menu-header">
               <span>{t.menuSubtitle}</span>
             </div>
-            <Link
-              href="/batch"
-              className="nav-menu-item"
-              onClick={() => setIsMenuOpen(false)}
-            >
-              <div className="nav-menu-icon" style={{ background: 'rgba(16, 185, 129, 0.12)', color: '#10b981' }}>
-                <UploadCloud size={16} />
-              </div>
-              <div className="nav-menu-info">
-                <span className="nav-menu-title">{t.batchNav}</span>
-                <span className="nav-menu-desc">CSV Geocoding</span>
-              </div>
-              <ChevronRight size={14} className="nav-menu-arrow" />
-            </Link>
-
-            <Link
-              href="/offline"
-              className="nav-menu-item"
-              onClick={() => setIsMenuOpen(false)}
-            >
-              <div className="nav-menu-icon" style={{ background: 'rgba(99, 102, 241, 0.12)', color: '#6366f1' }}>
-                <Database size={16} />
-              </div>
-              <div className="nav-menu-info">
-                <span className="nav-menu-title">{t.offlineNav}</span>
-                <span className="nav-menu-desc">Offline Database</span>
-              </div>
-              <ChevronRight size={14} className="nav-menu-arrow" />
-            </Link>
-
-            <Link
-              href="/docs"
-              className="nav-menu-item"
-              onClick={() => setIsMenuOpen(false)}
-            >
-              <div className="nav-menu-icon" style={{ background: 'rgba(6, 182, 212, 0.12)', color: '#06b6d4' }}>
-                <FileText size={16} />
-              </div>
-              <div className="nav-menu-info">
-                <span className="nav-menu-title">{t.apiDocsNav}</span>
-                <span className="nav-menu-desc">REST API Documentation</span>
-              </div>
-              <ChevronRight size={14} className="nav-menu-arrow" />
-            </Link>
-
-            <Link
-              href="/guide"
-              className="nav-menu-item"
-              onClick={() => setIsMenuOpen(false)}
-            >
-              <div className="nav-menu-icon" style={{ background: 'rgba(139, 92, 246, 0.12)', color: '#8b5cf6' }}>
-                <BookOpen size={16} />
-              </div>
-              <div className="nav-menu-info">
-                <span className="nav-menu-title">{t.guideNav}</span>
-                <span className="nav-menu-desc">User Manual & Tips</span>
-              </div>
-              <ChevronRight size={14} className="nav-menu-arrow" />
-            </Link>
+            {MENU_ITEMS.map(({ href, icon: Icon, color, title, desc }) => (
+              <Link key={href} href={href} className="nav-menu-item" onClick={() => setIsMenuOpen(false)}>
+                {/* "1f" appends ~12% alpha for a light tint of the icon colour */}
+                <div className="nav-menu-icon" style={{ background: `${color}1f`, color }}>
+                  <Icon size={16} />
+                </div>
+                <div className="nav-menu-info">
+                  <span className="nav-menu-title">{t[title]}</span>
+                  <span className="nav-menu-desc">{desc}</span>
+                </div>
+                <ChevronRight size={14} className="nav-menu-arrow" />
+              </Link>
+            ))}
           </div>
         )}
       </div>

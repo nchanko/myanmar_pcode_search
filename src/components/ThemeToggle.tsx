@@ -3,24 +3,27 @@
 import React, { useEffect, useState } from 'react';
 import { Sun, Moon } from 'lucide-react';
 
-export function ThemeToggle() {
-  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+type Theme = 'dark' | 'light';
 
+export function ThemeToggle() {
+  const [theme, setTheme] = useState<Theme>('dark');
+
+  // The inline script in app/layout.tsx already applied the theme; read it back
+  // so the icon matches what is on screen.
   useEffect(() => {
-    const saved = localStorage.getItem('theme') as 'dark' | 'light' | null;
-    if (saved) {
-      setTheme(saved);
-      document.documentElement.setAttribute('data-theme', saved);
-    } else {
-      document.documentElement.setAttribute('data-theme', 'dark');
-    }
+    const applied = document.documentElement.getAttribute('data-theme');
+    if (applied === 'light' || applied === 'dark') setTheme(applied);
   }, []);
 
   const toggleTheme = () => {
-    const nextTheme = theme === 'dark' ? 'light' : 'dark';
+    const nextTheme: Theme = theme === 'dark' ? 'light' : 'dark';
     setTheme(nextTheme);
     document.documentElement.setAttribute('data-theme', nextTheme);
-    localStorage.setItem('theme', nextTheme);
+    try {
+      localStorage.setItem('theme', nextTheme);
+    } catch {
+      // Private browsing: the theme still applies for this page view.
+    }
   };
 
   return (

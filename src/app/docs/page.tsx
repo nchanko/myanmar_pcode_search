@@ -4,6 +4,8 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, Terminal, Send, Copy, Check, Code2, Database } from 'lucide-react';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { DATA_INFO } from '@/lib/appInfo';
+import { formatNumber } from '@/lib/format';
 
 export default function ApiDocsPage() {
   const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -43,7 +45,7 @@ export default function ApiDocsPage() {
       description: 'Search places by Myanmar Unicode name, English name, PCode, or Township with relevance scoring.',
       parameters: [
         { name: 'q', type: 'string', required: true, desc: 'Search query (e.g. "Yangon", "မန္တလေး", "MMR013000777")' },
-        { name: 'type', type: 'string', required: false, desc: 'Filter by place type: "all" | "town" | "ward" | "village_tract" | "village"' },
+        { name: 'type', type: 'string', required: false, desc: 'Filter by place type: "all" | "town" | "ward" | "village_tract" | "village", or "postal" to look up by postal code (e.g. q=1501001)' },
         { name: 'limit', type: 'number', required: false, desc: 'Maximum number of results (default 25, max 100)' }
       ],
       curlSnippet: `curl -s "http://localhost:3030/api/v1/search?q=Yangon&type=town&limit=5"`,
@@ -163,7 +165,13 @@ print(res.json())`
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
           <h1 style={{ fontSize: '2rem', fontWeight: 700 }}>API Documentation & Interactive Playground</h1>
           <p style={{ color: 'var(--text-secondary)', lineHeight: 1.6, maxWidth: '800px' }}>
-            The Myanmar PCode REST API provides ultra-fast search, reverse geocoding, and batch coordinate matching against the official MIMU Release 9.6 dataset (90,676 places) and Myanmar Postal Codes (17,331 entries).
+            The Myanmar PCode REST API provides ultra-fast search, reverse geocoding, and batch coordinate matching against the official MIMU Release {DATA_INFO.version} dataset ({formatNumber(DATA_INFO.totalPlaces, 'en')} places) and Myanmar Postal Codes ({formatNumber(DATA_INFO.postalCodes, 'en')} entries).
+          </p>
+          <p style={{ color: 'var(--text-secondary)', lineHeight: 1.6, maxWidth: '800px' }}>
+            Every place includes <code>lat</code>, <code>lng</code> and <code>coord_source</code>. <code>mimu</code> is a surveyed
+            MIMU point. Wards and village tracts have no MIMU points, so they get an approximate one: <code>boundary</code> (centre
+            of the OCHA boundary area), <code>villages</code> (middle of the village tract&apos;s villages) or <code>town</code> (the
+            ward&apos;s town). Nearby and batch lookups only match surveyed points.
           </p>
           <div style={{
             display: 'inline-flex',
@@ -194,7 +202,7 @@ print(res.json())`
                     fontSize: '0.75rem',
                     fontWeight: 700,
                     background: ep.method === 'GET' ? 'rgba(16,185,129,0.2)' : 'rgba(99,102,241,0.2)',
-                    color: ep.method === 'GET' ? 'var(--accent-success)' : 'var(--accent-primary)'
+                    color: ep.method === 'GET' ? 'var(--success-text)' : 'var(--primary)'
                   }}>
                     {ep.method}
                   </span>
@@ -272,7 +280,7 @@ print(res.json())`
             {/* Live Response Viewer */}
             {activeTestResponse[ep.id] && (
               <div>
-                <h3 style={{ fontSize: '0.9rem', fontWeight: 600, marginBottom: '0.4rem', color: 'var(--accent-success)' }}>
+                <h3 style={{ fontSize: '0.9rem', fontWeight: 600, marginBottom: '0.4rem', color: 'var(--success-text)' }}>
                   Live API Response
                 </h3>
                 <div className="code-block" style={{ maxHeight: '240px', overflowY: 'auto' }}>

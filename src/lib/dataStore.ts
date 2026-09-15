@@ -1,9 +1,10 @@
 import path from 'node:path';
 import fs from 'node:fs';
 import type { Place, BatchResultItem } from '@/types/pcode';
-import { calculateDistanceKm } from './geo';
+import { calculateDistanceKm, hasExactCoords } from './geo';
+import { searchByPostalCode } from './postalSearch';
 
-const GRID_SIZE = 0.1; // ~11km cells, matching legacy/js/utils/spatialIndex.js
+const GRID_SIZE = 0.1; // degrees, ~11km cells for the nearby-search index
 
 // Serverless bundlers (e.g. Netlify Functions) don't always place included
 // files under process.cwd() at runtime, so try the conventional path first
@@ -56,7 +57,7 @@ function loadStore(): Store {
   const metaPath = resolveDataPath('public/data/pcode-meta.json');
 
   if (!fs.existsSync(dataPath)) {
-    throw new Error(`Dataset not found at ${dataPath}. Please run "npm run build:compact" first.`);
+    throw new Error(`Dataset not found at ${dataPath}. Please run "npm run build:data" first.`);
   }
 
   const places: Place[] = JSON.parse(fs.readFileSync(dataPath, 'utf8'));
@@ -71,7 +72,7 @@ function loadStore(): Store {
   for (let i = 0; i < places.length; i++) {
     const p = places[i];
     if (p.pcode) byPcode.set(p.pcode, p);
-    if (p.lat != null && p.lng != null) {
+    if (hasExactCoords(p)) {
       const key = gridKey(p.lat, p.lng);
       let cell = grid.get(key);
       if (!cell) {
@@ -100,12 +101,14 @@ function loadStore(): Store {
 }
 
 /**
- * Search places by query string (Myanmar name, English name, PCode, or Township).
- * Mirrors the relevance scoring previously done in SQL (src/lib/db.ts) so
- * result ordering stays consistent after moving off SQLite.
+ * Search places by query string (Myanmar name, English name, PCode, postal
+ * code or township). Ranked by match quality (exact PCode > exact postal code
+ * > exact name > prefix > substring > township), then places with coordinates
+ * first. type "postal" does a postal code lookup instead (see postalSearch.ts).
  */
 export function searchPlaces(query: string, type?: string, limit: number = 30): Place[] {
-  const { searchEntries } = loadStore();
+  const { places, searchEntries } = loadStore();
+  if (type === 'postal') return searchByPostalCode(places, query, limit);
   const q = query.trim();
   if (!q) return [];
   const qLower = q.toLowerCase();
@@ -259,13 +262,15 @@ export function getStats() {
   let vts = 0;
   let villages = 0;
   let withCoords = 0;
+  let withApproxCoords = 0;
 
   for (const p of places) {
     if (p.type === 'town') towns++;
     else if (p.type === 'ward') wards++;
     else if (p.type === 'village_tract') vts++;
     else if (p.type === 'village') villages++;
-    if (p.lat != null) withCoords++;
+    if (hasExactCoords(p)) withCoords++;
+    else if (p.lat != null) withApproxCoords++;
   }
 
   return {
@@ -275,6 +280,7 @@ export function getStats() {
     villageTracts: vts,
     villages,
     placesWithCoordinates: withCoords,
+    placesWithApproximateCoordinates: withApproxCoords,
     postalCodes: meta.postalCodes,
     version: meta.version,
     mimuRelease: meta.mimuRelease

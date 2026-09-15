@@ -8,12 +8,11 @@ import {
   Download,
   CheckCircle2,
   AlertTriangle,
-  Loader2,
-  FileSpreadsheet,
-  Layers,
-  MapPin
+  Loader2
 } from 'lucide-react';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import type { BatchResultItem } from '@/types/pcode';
+import { DATA_INFO } from '@/lib/appInfo';
 import Papa from 'papaparse';
 
 export default function BatchPage() {
@@ -116,6 +115,9 @@ export default function BatchPage() {
             <span>Batch Coordinate Reverse Geocoding / အများအပြားရှာဖွေခြင်း</span>
           </div>
         </div>
+        <div className="nav-actions">
+          <ThemeToggle />
+        </div>
       </header>
 
       {/* Main Container */}
@@ -124,7 +126,7 @@ export default function BatchPage() {
           <h1>Batch Coordinate Processing</h1>
           <p>
             Upload a CSV file containing multiple GPS coordinates (latitude, longitude) to instantly match them with
-            official Myanmar Place Codes (MIMU 9.6), Township hierarchies, and Postal Codes.
+            official Myanmar Place Codes (MIMU {DATA_INFO.version}), Township hierarchies, and Postal Codes.
           </p>
         </div>
 
@@ -149,11 +151,11 @@ export default function BatchPage() {
           {results.length === 0 ? (
             <div
               style={{
-                border: `2px dashed ${dragOver ? '#6366f1' : 'rgba(0,0,0,0.15)'}`,
+                border: `2px dashed ${dragOver ? 'var(--primary)' : 'var(--border)'}`,
                 borderRadius: '16px',
                 padding: '3rem 2rem',
                 textAlign: 'center',
-                background: dragOver ? 'rgba(99, 102, 241, 0.05)' : 'rgba(248, 250, 252, 0.6)',
+                background: dragOver ? 'var(--primary-subtle)' : 'var(--bg-secondary)',
                 cursor: 'pointer',
                 transition: 'all 0.2s ease'
               }}
@@ -191,11 +193,11 @@ export default function BatchPage() {
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    color: '#059669'
+                    color: 'var(--success-text)'
                   }}>
                     <UploadCloud size={28} />
                   </div>
-                  <p style={{ fontWeight: 700, fontSize: '1.1rem', color: '#1e293b' }}>
+                  <p style={{ fontWeight: 700, fontSize: '1.1rem', color: 'var(--text-primary)' }}>
                     Click or drag & drop CSV here to upload
                   </p>
                   <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
@@ -223,7 +225,7 @@ export default function BatchPage() {
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#059669', fontWeight: 600 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--success-text)', fontWeight: 600 }}>
                   <CheckCircle2 size={20} />
                   <span>Matched {results.length} locations successfully</span>
                 </div>
@@ -231,14 +233,14 @@ export default function BatchPage() {
                   <button
                     className="toggle-btn"
                     onClick={() => setResults([])}
-                    style={{ background: '#f1f5f9' }}
+                    style={{ background: 'var(--bg-secondary)' }}
                   >
                     Upload Another
                   </button>
                   <button
                     className="toggle-btn"
                     onClick={handleDownloadResults}
-                    style={{ background: '#10b981', color: 'white' }}
+                    style={{ background: 'var(--success)', color: '#ffffff' }}
                   >
                     <Download size={14} /> Download Enriched CSV
                   </button>

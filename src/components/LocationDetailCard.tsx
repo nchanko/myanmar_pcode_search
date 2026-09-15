@@ -20,13 +20,9 @@ export function LocationDetailCard({
 }: LocationDetailCardProps) {
   const { language, t } = useLanguage();
 
-  const pcodeLabel = place.type === 'village'
-    ? t.villagePcode
-    : place.type === 'ward'
-    ? t.wardPcode
-    : place.type === 'town'
-    ? t.townPcode
-    : t.vtPcode;
+  const approxLabel = place.coord_source && place.coord_source !== 'mimu'
+    ? t.coordSource[place.coord_source]
+    : null;
 
   return (
     <div className="unified-location-card">
@@ -65,22 +61,14 @@ export function LocationDetailCard({
         </div>
 
         <div className="unified-badges">
-          <span className="type-pill">
-            {place.type === 'village'
-              ? (language === 'mm' ? 'ကျေးရွာ' : 'VILLAGE')
-              : place.type === 'ward'
-              ? (language === 'mm' ? 'ရပ်ကွက်' : 'WARD')
-              : place.type === 'town'
-              ? (language === 'mm' ? 'မြို့' : 'TOWN')
-              : (language === 'mm' ? 'ကျေးရွာအုပ်စု' : 'VILLAGE TRACT')}
-          </span>
+          <span className="type-pill">{t.placeType[place.type]}</span>
           <button
             className="copy-chip pcode"
             onClick={() => onCopy(place.pcode, 'pcode')}
             title={t.copyPcode}
           >
             {copiedKey === 'pcode' ? <Check size={12} color="#059669" /> : <Copy size={12} />}
-            <span>{pcodeLabel} {place.pcode}</span>
+            <span>{t.typePcode[place.type]} {place.pcode}</span>
           </button>
           {place.postal_code && (
             <button
@@ -169,7 +157,7 @@ export function LocationDetailCard({
         flexWrap: 'wrap',
         gap: '8px'
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
           <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{t.coordinates}</span>
           <button
             className="copy-chip coords"
@@ -188,10 +176,13 @@ export function LocationDetailCard({
                 : t.unavailable}
             </span>
           </button>
+          {approxLabel && (
+            <span className="approx-coords-pill">≈ {t.approxCoords} · {approxLabel}</span>
+          )}
         </div>
 
         {place.distance_km != null && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '5px', color: 'var(--warning)', fontWeight: 600 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '5px', color: 'var(--warning-text)', fontWeight: 600 }}>
             <Navigation size={12} />
             <span>{place.distance_km} {t.kmAway}</span>
           </div>

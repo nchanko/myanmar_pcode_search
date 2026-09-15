@@ -3,6 +3,7 @@
 import React, { useEffect, useRef } from 'react';
 import type { Place } from '@/types/pcode';
 import { useLanguage } from '@/context/LanguageContext';
+import { escapeHtml } from '@/lib/format';
 
 interface MapViewProps {
   places: Place[];
@@ -21,7 +22,7 @@ export default function MapView({
   activeCoordinates,
   activeLandmark
 }: MapViewProps) {
-  const { language } = useLanguage();
+  const { language, t } = useLanguage();
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const mapInstanceRef = useRef<any>(null);
   const markersRef = useRef<any[]>([]);
@@ -94,6 +95,10 @@ export default function MapView({
       validPlaces.forEach((place) => {
         const isSelected = selectedPlace?.id === place.id;
         const color = isSelected ? '#6366f1' : '#06b6d4';
+        // Approximate points (ward / village tract area centres) get a hollow dashed pin.
+        const approxLabel = place.coord_source && place.coord_source !== 'mimu'
+          ? t.coordSource[place.coord_source]
+          : null;
 
         const customIcon = L.divIcon({
           className: 'custom-map-marker',
@@ -101,8 +106,8 @@ export default function MapView({
             <div style="
               width: ${isSelected ? '26px' : '18px'};
               height: ${isSelected ? '26px' : '18px'};
-              background: ${color};
-              border: 2.5px solid #ffffff;
+              background: ${approxLabel ? 'rgba(255,255,255,0.6)' : color};
+              border: 2.5px ${approxLabel ? `dashed ${color}` : 'solid #ffffff'};
               border-radius: 50%;
               box-shadow: 0 0 ${isSelected ? '14px rgba(99,102,241,0.8)' : '6px rgba(6,182,212,0.6)'};
               cursor: pointer;
@@ -119,17 +124,22 @@ export default function MapView({
 
         const popupHtml = `
           <div style="font-family: system-ui; padding: 4px; min-width: 180px;">
-            <div style="font-weight: 800; font-size: 14px; margin-bottom: 4px; color: #0f172a;">${displayName}</div>
+            <div style="font-weight: 800; font-size: 14px; margin-bottom: 4px; color: #0f172a;">${escapeHtml(displayName)}</div>
             <div style="font-size: 12px; font-weight: 600; color: #475569; margin-bottom: 6px;">
-              ${place.tsp_name || ''}${place.sr_name ? ` • ${place.sr_name}` : ''}
+              ${escapeHtml(place.tsp_name)}${place.sr_name ? ` • ${escapeHtml(place.sr_name)}` : ''}
             </div>
+            ${approxLabel ? `
+              <div style="font-size: 11px; font-weight: 600; color: #b45309; margin-bottom: 6px;">
+                ≈ ${t.approxCoords} · ${approxLabel}
+              </div>
+            ` : ''}
             <div style="display: flex; gap: 6px; font-size: 11px; flex-wrap: wrap;">
               <span style="background: rgba(99,102,241,0.12); color: #4f46e5; font-weight: 700; padding: 2px 6px; border-radius: 4px; font-family: monospace;">
-                PCode: ${place.pcode}
+                PCode: ${escapeHtml(place.pcode)}
               </span>
               ${place.postal_code ? `
                 <span style="background: rgba(16,185,129,0.12); color: #059669; font-weight: 700; padding: 2px 6px; border-radius: 4px; font-family: monospace;">
-                  Postal Code: ${place.postal_code}
+                  Postal Code: ${escapeHtml(place.postal_code)}
                 </span>
               ` : ''}
             </div>
@@ -189,7 +199,7 @@ export default function MapView({
           className: 'landmark-pin',
           html: `
             <div style="
-              background: #f59e0b;
+              background: #b45309;
               color: white;
               padding: 4px 8px;
               border-radius: 20px;
@@ -202,7 +212,7 @@ export default function MapView({
               gap: 4px;
               white-space: nowrap;
             ">
-              📍 ${activeLandmark.name.slice(0, 16)}
+              📍 ${escapeHtml(activeLandmark.name.slice(0, 16))}
             </div>
           `,
           iconAnchor: [40, 20]
@@ -215,7 +225,7 @@ export default function MapView({
         landmarkPinRef.current.bindPopup(`
           <div style="font-family: system-ui; padding: 4px;">
             <div style="font-weight: 800; color: #d97706; font-size: 13px;">📍 Searched Landmark</div>
-            <div style="font-weight: 700; font-size: 14px; margin-top: 2px;">${activeLandmark.name}</div>
+            <div style="font-weight: 700; font-size: 14px; margin-top: 2px;">${escapeHtml(activeLandmark.name)}</div>
             <div style="font-size: 11px; color: #0f172a; font-weight: 600; font-family: monospace; margin-top: 4px;">
               ${activeLandmark.lat.toFixed(5)}, ${activeLandmark.lng.toFixed(5)}
             </div>

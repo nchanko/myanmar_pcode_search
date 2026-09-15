@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { ServiceWorkerRegister } from '@/components/ServiceWorkerRegister';
 import { LanguageProvider } from '@/context/LanguageContext';
+import { DATA_INFO } from '@/lib/appInfo';
 
 export const viewport = {
   width: 'device-width',
@@ -11,8 +12,8 @@ export const viewport = {
 };
 
 export const metadata: Metadata = {
-  title: 'Myanmar PCode Search | မြန်မာ PCODE ရှာဖွေရေးစနစ် v2.0',
-  description: 'High-performance search engine, REST API, and interactive map for Myanmar Place Codes (MIMU 9.6) and Postal Codes with persistent caching.',
+  title: 'Myanmar PCode Search | မြန်မာ PCODE ရှာဖွေရေးစနစ်',
+  description: `High-performance search engine, REST API, and interactive map for Myanmar Place Codes (MIMU ${DATA_INFO.version}) and Postal Codes with persistent caching.`,
   keywords: ['Myanmar PCode', 'MIMU', 'Postal Code', 'Myanmar Maps', 'Geocoding', 'API'],
   authors: [{ name: 'Medaius' }],
   icons: {
@@ -28,7 +29,19 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="my">
+    <html lang="my" suppressHydrationWarning>
+      <head>
+        {/*
+          Set the theme before first paint, on every page. Doing it in a
+          component's effect instead would leave pages that don't render the
+          toggle stuck on the light palette, and flash light on the ones that do.
+        */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `try{document.documentElement.setAttribute('data-theme',localStorage.getItem('theme')||'dark')}catch(e){document.documentElement.setAttribute('data-theme','dark')}`
+          }}
+        />
+      </head>
       <body>
         <LanguageProvider>
           <ServiceWorkerRegister />

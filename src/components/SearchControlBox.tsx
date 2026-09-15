@@ -11,9 +11,22 @@ import {
   Home,
   Trees,
   Landmark as LandmarkIcon,
+  Mail,
   Store
 } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
+
+// One entry per search tab; `label` and `placeholder` are translation keys.
+const SEARCH_TABS = [
+  { mode: 'town', icon: Building2, label: 'townsTab', placeholder: 'placeholderTown' },
+  { mode: 'ward', icon: Home, label: 'wardsTab', placeholder: 'placeholderWard' },
+  { mode: 'village_tract', icon: Trees, label: 'vtTab', placeholder: 'placeholderVT' },
+  { mode: 'village', icon: Home, label: 'villagesTab', placeholder: 'placeholderVillage' },
+  { mode: 'pcode', icon: Hash, label: 'pcodeTab', placeholder: 'placeholderPcode' },
+  { mode: 'postal', icon: Mail, label: 'postalTab', placeholder: 'placeholderPostal' },
+  { mode: 'coordinates', icon: Navigation, label: 'latlongTab', placeholder: 'placeholderCoords' },
+  { mode: 'landmark', icon: LandmarkIcon, label: 'landmarkTab', placeholder: 'placeholderLandmark' }
+] as const;
 
 interface SearchControlBoxProps {
   searchQuery: string;
@@ -58,65 +71,21 @@ export function SearchControlBox({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [setShowSuggestions]);
 
-  const getPlaceholderText = () => {
-    switch (searchMode) {
-      case 'town': return t.placeholderTown;
-      case 'ward': return t.placeholderWard;
-      case 'village_tract': return t.placeholderVT;
-      case 'village': return t.placeholderVillage;
-      case 'pcode': return t.placeholderPcode;
-      case 'coordinates': return t.placeholderCoords;
-      case 'landmark': return t.placeholderLandmark;
-      default: return t.placeholderTown;
-    }
-  };
+  const activeTab = SEARCH_TABS.find((tab) => tab.mode === searchMode) ?? SEARCH_TABS[0];
 
   return (
     <>
       {/* Search Type Filters */}
       <div className="search-row">
-        <button
-          className={`toggle-btn ${searchMode === 'town' ? 'active' : ''}`}
-          onClick={() => { setSearchMode('town'); if (searchQuery.trim()) onSearch(searchQuery, 'town'); }}
-        >
-          <Building2 size={14} /> {t.townsTab}
-        </button>
-        <button
-          className={`toggle-btn ${searchMode === 'ward' ? 'active' : ''}`}
-          onClick={() => { setSearchMode('ward'); if (searchQuery.trim()) onSearch(searchQuery, 'ward'); }}
-        >
-          <Home size={14} /> {t.wardsTab}
-        </button>
-        <button
-          className={`toggle-btn ${searchMode === 'village_tract' ? 'active' : ''}`}
-          onClick={() => { setSearchMode('village_tract'); if (searchQuery.trim()) onSearch(searchQuery, 'village_tract'); }}
-        >
-          <Trees size={14} /> {t.vtTab}
-        </button>
-        <button
-          className={`toggle-btn ${searchMode === 'village' ? 'active' : ''}`}
-          onClick={() => { setSearchMode('village'); if (searchQuery.trim()) onSearch(searchQuery, 'village'); }}
-        >
-          <Home size={14} /> {t.villagesTab}
-        </button>
-        <button
-          className={`toggle-btn ${searchMode === 'pcode' ? 'active' : ''}`}
-          onClick={() => { setSearchMode('pcode'); if (searchQuery.trim()) onSearch(searchQuery, 'pcode'); }}
-        >
-          <Hash size={14} /> {t.pcodeTab}
-        </button>
-        <button
-          className={`toggle-btn ${searchMode === 'coordinates' ? 'active' : ''}`}
-          onClick={() => { setSearchMode('coordinates'); if (searchQuery.trim()) onSearch(searchQuery, 'coordinates'); }}
-        >
-          <Navigation size={14} /> {t.latlongTab}
-        </button>
-        <button
-          className={`toggle-btn landmark-btn ${searchMode === 'landmark' ? 'active' : ''}`}
-          onClick={() => { setSearchMode('landmark'); if (searchQuery.trim()) onSearch(searchQuery, 'landmark'); }}
-        >
-          <LandmarkIcon size={14} /> {t.landmarkTab}
-        </button>
+        {SEARCH_TABS.map(({ mode, icon: Icon, label }) => (
+          <button
+            key={mode}
+            className={`toggle-btn ${mode === 'landmark' ? 'landmark-btn' : ''} ${searchMode === mode ? 'active' : ''}`}
+            onClick={() => { setSearchMode(mode); if (searchQuery.trim()) onSearch(searchQuery, mode); }}
+          >
+            <Icon size={14} /> {t[label]}
+          </button>
+        ))}
       </div>
 
       {/* Search Input Card */}
@@ -126,7 +95,7 @@ export function SearchControlBox({
             ref={searchInputRef}
             type="text"
             className="search-input"
-            placeholder={getPlaceholderText()}
+            placeholder={t[activeTab.placeholder]}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             onKeyDown={(e) => {
@@ -157,7 +126,7 @@ export function SearchControlBox({
           {showSuggestions && suggestions.length > 0 && (
             <div className="suggestions-dropdown">
               <div className="suggestion-header">
-                {searchMode === 'landmark' ? '📍 Landmark Results (OpenStreetMap)' : (language === 'mm' ? 'အကြံပြုချက်များ' : 'Search Suggestions')}
+                {searchMode === 'landmark' ? '📍 Landmark Results (OpenStreetMap)' : t.suggestionsHeader}
               </div>
               {suggestions.map((item, idx) => (
                 <div

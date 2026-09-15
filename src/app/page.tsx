@@ -12,6 +12,9 @@ import { LocationDetailCard } from '@/components/LocationDetailCard';
 import { useLanguage } from '@/context/LanguageContext';
 import type { Place } from '@/types/pcode';
 
+// Tabs that map to a search "type" filter; other tabs (e.g. PCode) search all types.
+const SEARCH_TYPES = ['town', 'ward', 'village_tract', 'village', 'postal'];
+
 // Dynamic import for Leaflet map to avoid SSR issues
 const MapView = dynamic(() => import('@/components/MapView'), {
   ssr: false,
@@ -52,10 +55,6 @@ export default function HomePage() {
   // Offline status & copy feedback
   const [isOnline, setIsOnline] = useState(true);
   const [isOfflineForced, setIsOfflineForced] = useState(false);
-  const [offlineStatus, setOfflineStatus] = useState<{ ready: boolean; count: number; lastSynced?: string }>({
-    ready: false,
-    count: 0
-  });
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
 
   // Check network & IndexedDB status on mount
@@ -67,7 +66,6 @@ export default function HomePage() {
       window.addEventListener('online', handleOnline);
       window.addEventListener('offline', handleOffline);
 
-      isOfflineReady().then(setOfflineStatus).catch(console.error);
       const forced = localStorage.getItem('mm_pcode_force_offline') === 'true';
       setIsOfflineForced(forced);
 
@@ -136,7 +134,7 @@ export default function HomePage() {
       if (coords || searchMode === 'coordinates') return;
 
       try {
-        const targetType = ['town', 'ward', 'village_tract', 'village'].includes(searchMode) ? searchMode : '';
+        const targetType = SEARCH_TYPES.includes(searchMode) ? searchMode : '';
         const url = `/api/search?q=${encodeURIComponent(trimmed)}${targetType ? `&type=${targetType}` : ''}&limit=6`;
         const res = await fetch(url);
         if (res.ok) {
@@ -233,10 +231,11 @@ export default function HomePage() {
 
     setActiveCoords(null);
     setActiveLandmark(null);
+    const targetType = SEARCH_TYPES.includes(mode) ? mode : '';
 
     if (isOfflineForced || !isOnline) {
       try {
-        const offlineRes = await searchOffline(trimmed, mode, 25);
+        const offlineRes = await searchOffline(trimmed, targetType, 25);
         setResults(offlineRes);
         if (offlineRes.length > 0) setSelectedPlace(offlineRes[0]);
       } catch (e) {
@@ -248,7 +247,6 @@ export default function HomePage() {
     }
 
     try {
-      const targetType = ['town', 'ward', 'village_tract', 'village'].includes(mode) ? mode : '';
       const url = `/api/search?q=${encodeURIComponent(trimmed)}${targetType ? `&type=${targetType}` : ''}&limit=30`;
       const res = await fetch(url);
       if (res.ok) {
@@ -365,7 +363,7 @@ export default function HomePage() {
                   </span>
                 </div>
                 <span style={{ fontSize: '12px', color: 'var(--primary)', fontWeight: 700 }}>
-                  {showNearby ? (language === 'mm' ? 'ဝှက်မည် ▲' : 'Hide ▲') : (language === 'mm' ? 'ကြည့်မည် ▼' : 'View ▼')}
+                  {showNearby ? t.hideList : t.showList}
                 </span>
               </button>
 
@@ -389,26 +387,12 @@ export default function HomePage() {
                             {[place.vt_name ? `${place.vt_name} VT` : place.town_name, place.tsp_name, place.sr_name].filter(Boolean).join(' • ')}
                           </div>
                         </div>
-                        <span className="type-pill">
-                          {place.type === 'village'
-                            ? (language === 'mm' ? 'ကျေးရွာ' : 'VILLAGE')
-                            : place.type === 'ward'
-                            ? (language === 'mm' ? 'ရပ်ကွက်' : 'WARD')
-                            : place.type === 'town'
-                            ? (language === 'mm' ? 'မြို့' : 'TOWN')
-                            : (language === 'mm' ? 'ကျေးရွာအုပ်စု' : 'VILLAGE TRACT')}
-                        </span>
+                        <span className="type-pill">{t.placeType[place.type]}</span>
                       </div>
 
                       <div className="place-card-pills">
                         <span className="place-pill pcode">
-                          {place.type === 'village'
-                            ? t.villagePcode
-                            : place.type === 'ward'
-                            ? t.wardPcode
-                            : place.type === 'town'
-                            ? t.townPcode
-                            : t.vtPcode} {place.pcode}
+                          {t.typePcode[place.type]} {place.pcode}
                         </span>
                         {place.postal_code && (
                           <span className="place-pill postal">

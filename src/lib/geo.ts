@@ -1,3 +1,14 @@
+import type { Place } from '@/types/pcode';
+
+/**
+ * True for surveyed MIMU points. Approximate points (area centres filled in
+ * at build time) are left out so nearby/batch lookups keep matching real
+ * places. Offline data synced before coord_source existed counts as exact.
+ */
+export function hasExactCoords(p: Place): p is Place & { lat: number; lng: number } {
+  return p.lat != null && p.lng != null && (p.coord_source ?? 'mimu') === 'mimu';
+}
+
 /**
  * Pure Haversine formula to compute great-circle distance in kilometers.
  * Works in both browser and server environments.

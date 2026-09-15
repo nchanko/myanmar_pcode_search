@@ -1,4 +1,5 @@
-const CACHE_NAME = 'mm-pcode-cache-v4';
+// Bump whenever public/data changes so clients drop the cached dataset.
+const CACHE_NAME = 'mm-pcode-cache-v5';
 const STATIC_ASSETS = [
   '/favicon.ico',
   '/manifest.json',

@@ -1,5 +1,6 @@
 import type { Place, BatchResultItem } from '@/types/pcode';
-import { calculateDistanceKm } from './geo';
+import { calculateDistanceKm, hasExactCoords } from './geo';
+import { searchByPostalCode } from './postalSearch';
 
 const DB_NAME = 'MyanmarPCodeDB';
 const DB_VERSION = 1;
@@ -79,7 +80,7 @@ export async function isOfflineReady(): Promise<{ ready: boolean; count: number;
 export async function syncOfflineData(
   onProgress?: (percent: number, message: string) => void
 ): Promise<number> {
-  onProgress?.(5, 'Fetching compressed dataset (2.4MB)...');
+  onProgress?.(5, 'Fetching compressed dataset (~3.2 MB)...');
 
   const response = await fetch('/data/pcode-compact.json');
   if (!response.ok) {
@@ -166,6 +167,7 @@ async function getInMemoryPlaces(): Promise<Place[]> {
  */
 export async function searchOffline(query: string, type?: string, limit: number = 25): Promise<Place[]> {
   const places = await getInMemoryPlaces();
+  if (type === 'postal') return searchByPostalCode(places, query, limit);
   const q = query.trim().toLowerCase();
   if (!q) return [];
 
@@ -220,7 +222,7 @@ export async function getNearbyOffline(
   const maxLng = lng + dLng;
 
   const candidates = places.filter(p =>
-    p.lat != null && p.lng != null &&
+    hasExactCoords(p) &&
     p.lat >= minLat && p.lat <= maxLat &&
     p.lng >= minLng && p.lng <= maxLng
   );

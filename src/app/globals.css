@@ -8,6 +8,11 @@
   --success-subtle: rgba(16, 185, 129, 0.08);
   --warning: #f59e0b;
   --warning-subtle: rgba(245, 158, 11, 0.08);
+  /* --success/--warning are fill colours; these are the readable text versions
+     of them, dark enough on light backgrounds and light enough on dark ones. */
+  --success-text: #047857;
+  --warning-text: #b45309;
+  --info-text: #0e7490;
   --info: #06b6d4;
   --info-subtle: rgba(6, 182, 212, 0.08);
   --bg-primary: #f8fafc;
@@ -46,6 +51,9 @@
   --accent-primary: #6366f1;
   --accent-success: #10b981;
   --accent-warning: #f59e0b;
+  --success-text: #34d399;
+  --warning-text: #fbbf24;
+  --info-text: #22d3ee;
   --text-primary: #f9fafb;
   --text-secondary: #cbd5e1;
   --text-muted: #94a3b8;
@@ -84,9 +92,6 @@ body {
 .brand-icon img { border-radius: 8px; object-fit: contain; flex-shrink: 0; }
 .brand-title { font-size: 15px; font-weight: 700; letter-spacing: -0.01em; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .brand-subtitle { font-size: 11px; color: var(--text-secondary); display: flex; align-items: center; white-space: nowrap; }
-.status-badge { display: inline-flex; align-items: center; font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 9999px; }
-.status-badge.online { background: var(--success-subtle); color: var(--success); }
-.status-badge.offline { background: var(--warning-subtle); color: var(--warning); }
 .nav-actions, .doc-navbar-left { display: flex; align-items: center; gap: 8px; position: relative; flex-shrink: 0; }
 .nav-btn, .back-link {
   display: inline-flex;
@@ -107,6 +112,10 @@ body {
 .nav-btn:hover, .back-link:hover { background: var(--border); }
 .nav-btn.primary { background: var(--primary-subtle); color: var(--primary); border-color: rgba(99, 102, 241, 0.25); }
 .nav-btn.active { background: var(--primary-subtle); color: var(--primary); border-color: rgba(99, 102, 241, 0.25); }
+/* Plain text link in the docs/guide headers; without this it falls back to the
+   browser's default blue, which is unreadable on the dark navbar. */
+.nav-link { color: var(--primary); text-decoration: none; font-size: 12.5px; font-weight: 600; white-space: nowrap; }
+.nav-link:hover { text-decoration: underline; }
 
 /* Nav Menu Dropdown */
 .nav-menu-dropdown {
@@ -195,7 +204,10 @@ body {
 }
 .toggle-btn:hover { border-color: var(--primary); }
 .toggle-btn.active { background: var(--primary); color: #ffffff; border-color: var(--primary); }
-.toggle-btn.landmark-btn.active { background: var(--warning); color: #ffffff; border-color: var(--warning); }
+/* --warning is too light behind white text; --warning-text is the darker amber. */
+.toggle-btn.landmark-btn.active { background: var(--warning-text); color: #ffffff; border-color: var(--warning-text); }
+/* In dark mode --warning-text is a light amber, so white on it is only 1.7:1. */
+[data-theme="dark"] .toggle-btn.landmark-btn.active { color: #0b0f19; }
 
 /* Search Container */
 .search-container { position: relative; z-index: 50; }
@@ -315,7 +327,7 @@ body {
 .suggestion-hierarchy { font-size: 11.5px; color: var(--text-secondary); margin-top: 2px; }
 .suggestion-meta { text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 3px; }
 .suggestion-tag { font-size: 10.5px; font-weight: 700; padding: 1px 6px; border-radius: 4px; background: var(--primary-subtle); color: var(--primary); }
-.suggestion-tag.landmark { background: var(--warning-subtle); color: var(--warning); }
+.suggestion-tag.landmark { background: var(--warning-subtle); color: var(--warning-text); }
 
 /* Unified Location Details Card */
 .unified-location-card {
@@ -339,7 +351,7 @@ body {
   flex-wrap: wrap;
 }
 .landmark-banner-left { display: flex; align-items: flex-start; gap: 8px; min-width: 0; flex: 1 1 200px; }
-.landmark-banner-title { font-size: 13.5px; font-weight: 700; color: var(--warning); }
+.landmark-banner-title { font-size: 13.5px; font-weight: 700; color: var(--warning-text); }
 .landmark-banner-address { font-size: 11.5px; color: var(--text-primary); margin-top: 2px; opacity: 0.85; }
 .unified-header-banner {
   display: flex;
@@ -383,8 +395,8 @@ body {
 .copy-chip:disabled { cursor: not-allowed; opacity: 0.5; }
 .copy-chip:disabled:hover { background: var(--bg-secondary); }
 .copy-chip.pcode { color: var(--primary); background: var(--primary-subtle); border-color: transparent; }
-.copy-chip.postal { color: var(--success); background: var(--success-subtle); border-color: transparent; }
-.copy-chip.coords { color: var(--info); background: var(--info-subtle); border-color: transparent; }
+.copy-chip.postal { color: var(--success-text); background: var(--success-subtle); border-color: transparent; }
+.copy-chip.coords { color: var(--info-text); background: var(--info-subtle); border-color: transparent; }
 .hierarchy-summary-box {
   display: flex;
   align-items: center;
@@ -417,8 +429,16 @@ body {
 .place-card-pills { display: flex; gap: 6px; margin-top: 6px; flex-wrap: wrap; align-items: center; }
 .place-pill { font-size: 11px; font-weight: 700; padding: 2px 6px; border-radius: 4px; font-family: monospace; }
 .place-pill.pcode { background: var(--primary-subtle); color: var(--primary); }
-.place-pill.postal { background: var(--success-subtle); color: var(--success); }
-.place-pill.distance { background: var(--warning-subtle); color: var(--warning); }
+.place-pill.postal { background: var(--success-subtle); color: var(--success-text); }
+.place-pill.distance { background: var(--warning-subtle); color: var(--warning-text); }
+.approx-coords-pill {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--warning-text);
+  background: var(--warning-subtle);
+  padding: 2px 7px;
+  border-radius: 4px;
+}
 
 /* Map & Dedicated Footer Bar */
 #map, .map-container-inner { height: 600px; width: 100%; border-radius: var(--radius); overflow: hidden; border: 1px solid var(--border); }
