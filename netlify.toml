@@ -23,10 +23,11 @@
 [[headers]]
   for = "/api/*"
   [headers.values]
-    # Netlify's durable cache keys these by path alone, so with s-maxage set,
-    # the first /api/search after a deploy was replayed for every later query:
-    # searching "Mandalay" returned Yangon. Netlify-Vary puts the query string
-    # in the cache key, which is what makes caching safe here at all.
-    Netlify-Vary = "query"
-    Cache-Control = "public, s-maxage=3600, stale-while-revalidate=86400"
+    # Do not let the CDN cache these. The Next.js runtime emits its own
+    # Netlify-Vary listing only __nextDataReq and _rsc, so the cache key leaves
+    # out q, lat and lng: with s-maxage set, the first /api/search after a
+    # deploy was served to every later query, and searching Mandalay returned
+    # Yangon. A Netlify-Vary here does not help — the runtime's wins. Caching
+    # can come back only when the key provably includes the query string.
+    Cache-Control = "no-store"
     Access-Control-Allow-Origin = "*"
