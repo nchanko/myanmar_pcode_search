@@ -50,7 +50,12 @@ export async function GET(request: NextRequest) {
       },
       {
         headers: {
-          'Cache-Control': 'public, max-age=86400, stale-while-revalidate=604800',
+          // Netlify's durable cache keys responses by path, and the Next.js
+          // runtime's own Netlify-Vary lists only __nextDataReq and _rsc, so
+          // the query string is not part of the key: a cached response here
+          // was served to every later query. Searching Bago returned Mandalay
+          // on the live site. Anything that varies by query stays uncached.
+          'Cache-Control': 'no-store',
           'Access-Control-Allow-Origin': '*'
         }
       }

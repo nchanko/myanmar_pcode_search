@@ -71,6 +71,11 @@ export async function GET(request: NextRequest) {
       query,
       count: formatted.length,
       results: formatted
+    }, {
+      // Varies by ?q, and Netlify's cache key does not include the query
+      // string — see the note in v1/search. Upstream Nominatim results are
+      // still cached for an hour by the fetch above.
+      headers: { 'Cache-Control': 'no-store' }
     });
   } catch (error: any) {
     console.error('Geocoding error:', error);

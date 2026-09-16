@@ -23,11 +23,10 @@
 [[headers]]
   for = "/api/*"
   [headers.values]
-    # Do not let the CDN cache these. The Next.js runtime emits its own
-    # Netlify-Vary listing only __nextDataReq and _rsc, so the cache key leaves
-    # out q, lat and lng: with s-maxage set, the first /api/search after a
-    # deploy was served to every later query, and searching Mandalay returned
-    # Yangon. A Netlify-Vary here does not help — the runtime's wins. Caching
-    # can come back only when the key provably includes the query string.
+    # Default for any route that does not set its own Cache-Control. Routes
+    # win over this file, so the real per-route decisions live in the handlers:
+    # /search, /nearby and /geocode are no-store because Netlify's cache key
+    # omits the query string, while /stats and /pcode/[code] stay cached since
+    # their keys are path-only.
     Cache-Control = "no-store"
     Access-Control-Allow-Origin = "*"
