@@ -19,10 +19,12 @@ export default function BatchPage() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [results, setResults] = useState<BatchResultItem[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [warning, setWarning] = useState<string | null>(null);
   const [dragOver, setDragOver] = useState(false);
 
   const handleFileUpload = (file: File) => {
     setError(null);
+    setWarning(null);
     setIsProcessing(true);
 
     Papa.parse(file, {
@@ -43,6 +45,7 @@ export default function BatchPage() {
           }
 
           let batchResults: BatchResultItem[] = [];
+          let serverError: string | null = null;
 
           try {
             const res = await fetch('/api/v1/batch', {
@@ -51,15 +54,43 @@ export default function BatchPage() {
               body: JSON.stringify({ items })
             });
 
-            if (res.ok) {
-              const data = await res.json();
-              batchResults = data.results || [];
-            } else {
-              throw new Error('Server batch failed, trying offline...');
+            const data = await res.json().catch(() => null);
+
+            if (!res.ok) {
+              // e.g. the 2,000-item cap, or a 500. Keep the reason: the user
+              // needs it if the offline fallback isn't available either.
+              const message: string = data?.error || `Server returned ${res.status}.`;
+              serverError = message;
+              throw new Error(message);
             }
-          } catch (netErr) {
-            const { batchLookupOffline } = await import('@/lib/offlineDb');
+            if (!Array.isArray(data?.results)) {
+              const message: string = data?.error || 'The server returned an unexpected response.';
+              serverError = message;
+              throw new Error(message);
+            }
+
+            batchResults = data.results;
+          } catch (netErr: any) {
+            // Fall back to the downloaded dataset — but only if it is actually
+            // there. Running the lookup against an empty database returns a
+            // NOT_FOUND for every row, which reads like a real answer.
+            const { isOfflineReady, batchLookupOffline } = await import('@/lib/offlineDb');
+            const offline = await isOfflineReady().catch(() => ({ ready: false, count: 0 }));
+
+            if (!offline.ready) {
+              throw new Error(
+                serverError
+                  ? `${serverError} No offline database is downloaded to fall back on.`
+                  : 'Could not reach the server, and no offline database is downloaded. Download it on the Offline page, then try again.'
+              );
+            }
+
             batchResults = await batchLookupOffline(items);
+            setWarning(
+              serverError
+                ? `Server lookup failed (${serverError}) — matched against your downloaded offline database instead.`
+                : 'Could not reach the server — matched against your downloaded offline database instead.'
+            );
           }
 
           setResults(batchResults);
@@ -75,6 +106,9 @@ export default function BatchPage() {
       }
     });
   };
+
+  const matchedCount = results.filter(r => r.status === 'FOUND').length;
+  const unmatchedCount = results.length - matchedCount;
 
   const handleDownloadResults = () => {
     if (!results.length) return;
@@ -145,6 +179,24 @@ export default function BatchPage() {
             }}>
               <AlertTriangle size={18} />
               <span>{error}</span>
+            </div>
+          )}
+
+          {warning && (
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              padding: '0.75rem',
+              background: 'var(--warning-subtle)',
+              border: '1px solid var(--warning-subtle)',
+              borderRadius: '8px',
+              color: 'var(--warning-text)',
+              fontSize: '0.85rem',
+              marginBottom: '1rem'
+            }}>
+              <AlertTriangle size={18} />
+              <span>{warning}</span>
             </div>
           )}
 
@@ -227,7 +279,10 @@ export default function BatchPage() {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--success-text)', fontWeight: 600 }}>
                   <CheckCircle2 size={20} />
-                  <span>Matched {results.length} locations successfully</span>
+                  <span>
+                    Matched {matchedCount} of {results.length} rows
+                    {unmatchedCount > 0 ? ` (${unmatchedCount} unmatched)` : ''}
+                  </span>
                 </div>
                 <div style={{ display: 'flex', gap: '0.5rem' }}>
                   <button

@@ -10,15 +10,30 @@ const STORE_META = 'meta';
 let inMemoryPlacesCache: Place[] | null = null;
 
 /**
+ * The one open connection, shared by every call.
+ *
+ * Opening a fresh connection per call leaks them, and any connection left open
+ * makes deleteDatabase() fire 'blocked' and wait instead of completing, which
+ * is what made clearing the offline data hang.
+ */
+let dbPromise: Promise<IDBDatabase> | null = null;
+
+/**
  * Open or upgrade IndexedDB
  */
 function openIndexedDB(): Promise<IDBDatabase> {
-  return new Promise((resolve, reject) => {
+  if (dbPromise) return dbPromise;
+
+  dbPromise = new Promise<IDBDatabase>((resolve, reject) => {
     if (typeof window === 'undefined' || !window.indexedDB) {
       return reject(new Error('IndexedDB is not available in this environment.'));
     }
 
     const request = window.indexedDB.open(DB_NAME, DB_VERSION);
+
+    // Another tab is deleting or upgrading the database.
+    request.onblocked = () =>
+      reject(new Error('The offline database is in use by another tab. Close it and try again.'));
 
     request.onupgradeneeded = (event: any) => {
       const db = event.target.result;
@@ -36,9 +51,40 @@ function openIndexedDB(): Promise<IDBDatabase> {
       }
     };
 
-    request.onsuccess = () => resolve(request.result);
+    request.onsuccess = () => {
+      const db = request.result;
+      // Let a delete or upgrade started elsewhere proceed instead of blocking on us.
+      db.onversionchange = () => {
+        db.close();
+        dbPromise = null;
+        inMemoryPlacesCache = null;
+      };
+      db.onclose = () => {
+        dbPromise = null;
+      };
+      resolve(db);
+    };
     request.onerror = () => reject(request.error);
   });
+
+  // A failed open must not be cached, or every later call replays the failure.
+  dbPromise.catch(() => {
+    dbPromise = null;
+  });
+
+  return dbPromise;
+}
+
+/** Close the shared connection, if one is open. */
+async function closeDb(): Promise<void> {
+  const pending = dbPromise;
+  dbPromise = null;
+  if (!pending) return;
+  try {
+    (await pending).close();
+  } catch {
+    // Nothing to close: the open failed.
+  }
 }
 
 /**
@@ -82,7 +128,9 @@ export async function syncOfflineData(
 ): Promise<number> {
   onProgress?.(5, 'Fetching compressed dataset (~3.2 MB)...');
 
-  const response = await fetch('/data/pcode-compact.json');
+  // no-store: a re-download must hit the network, not the HTTP cache, and a
+  // 36 MB body has no business sitting in the cache as well as IndexedDB.
+  const response = await fetch('/data/pcode-compact.json', { cache: 'no-store' });
   if (!response.ok) {
     throw new Error('Failed to fetch offline dataset.');
   }
@@ -293,16 +341,35 @@ export async function batchLookupOffline(
  */
 export async function clearOfflineData(): Promise<void> {
   if (typeof window === 'undefined' || !window.indexedDB) return;
+
+  inMemoryPlacesCache = null;
+
+  // Our own connection would block the delete, so drop it first.
+  await closeDb();
+
   return new Promise((resolve, reject) => {
     const req = window.indexedDB.deleteDatabase(DB_NAME);
-    req.onsuccess = () => {
-      inMemoryPlacesCache = null;
-      resolve();
+    let settled = false;
+    let blockedTimer: ReturnType<typeof setTimeout> | null = null;
+
+    const finish = (err?: Error) => {
+      if (settled) return;
+      settled = true;
+      if (blockedTimer) clearTimeout(blockedTimer);
+      if (err) reject(err);
+      else resolve();
     };
-    req.onerror = () => reject(req.error);
+
+    req.onsuccess = () => finish();
+    req.onerror = () => finish(req.error ?? new Error('Failed to clear the offline database.'));
+
+    // Another tab still holds a connection. Its onversionchange handler should
+    // close it within a moment; if it doesn't, report that rather than waiting
+    // forever or claiming the data was cleared when it wasn't.
     req.onblocked = () => {
-      inMemoryPlacesCache = null;
-      resolve();
+      blockedTimer = setTimeout(() => {
+        finish(new Error('Another tab has the offline database open. Close it and try again.'));
+      }, 3000);
     };
   });
 }

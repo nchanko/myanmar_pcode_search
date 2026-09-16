@@ -27,6 +27,7 @@ export default function OfflinePage() {
     count: 0
   });
   const [isSyncing, setIsSyncing] = useState(false);
+  const [isClearing, setIsClearing] = useState(false);
   const [syncProgress, setSyncProgress] = useState(0);
   const [syncMessage, setSyncMessage] = useState('');
   const [syncError, setSyncError] = useState<string | null>(null);
@@ -63,10 +64,19 @@ export default function OfflinePage() {
   };
 
   const handleClear = async () => {
-    if (confirm('Are you sure you want to clear the offline IndexedDB cache?')) {
+    if (!confirm('Are you sure you want to clear the offline IndexedDB cache?')) return;
+
+    setIsClearing(true);
+    setSyncError(null);
+    try {
       await clearOfflineData();
-      const updated = await isOfflineReady();
-      setOfflineStatus(updated);
+      setOfflineStatus(await isOfflineReady());
+    } catch (err: any) {
+      // Most often: another tab holds the database open.
+      setSyncError(err?.message || 'Failed to clear the offline database.');
+      setOfflineStatus(await isOfflineReady().catch(() => ({ ready: false, count: 0 })));
+    } finally {
+      setIsClearing(false);
     }
   };
 
@@ -213,6 +223,7 @@ export default function OfflinePage() {
                 <button
                   className="toggle-btn"
                   onClick={handleClear}
+                  disabled={isClearing || isSyncing}
                   style={{
                     background: 'rgba(239, 68, 68, 0.1)',
                     color: '#ef4444',
@@ -220,7 +231,7 @@ export default function OfflinePage() {
                   }}
                   title="Clear IndexedDB"
                 >
-                  <Trash2 size={16} />
+                  {isClearing ? <RefreshCw size={16} className="animate-spin" /> : <Trash2 size={16} />}
                 </button>
               )}
             </div>

@@ -79,7 +79,12 @@ export default function HomePage() {
   // Initial load: Sample Yangon places
   useEffect(() => {
     fetch('/api/search?q=Yangon&type=town&limit=10')
-      .then(res => res.json())
+      .then(res => {
+        // The service worker answers 503 when it is offline with nothing
+        // cached; without this the empty body looked like a real result.
+        if (!res.ok) throw new Error(`Initial search failed (${res.status})`);
+        return res.json();
+      })
       .then(data => {
         if (data.results && data.results.length > 0) {
           setResults(data.results);
@@ -216,13 +221,20 @@ export default function HomePage() {
 
       try {
         const res = await fetch(`/api/nearby?lat=${targetCoords.lat}&lng=${targetCoords.lng}&radius=15&limit=20`);
-        if (res.ok) {
-          const data = await res.json();
-          setResults(data.results || []);
-          if (data.results?.length > 0) setSelectedPlace(data.results[0]);
-        }
+        if (!res.ok) throw new Error(`Nearby lookup failed (${res.status})`);
+        const data = await res.json();
+        setResults(data.results || []);
+        if (data.results?.length > 0) setSelectedPlace(data.results[0]);
       } catch (err) {
+        // The connection can drop after navigator.onLine said we were online.
         console.error('Coordinate search error:', err);
+        try {
+          const offlineRes = await getNearbyOffline(targetCoords.lat, targetCoords.lng, 15, 20);
+          setResults(offlineRes);
+          if (offlineRes.length > 0) setSelectedPlace(offlineRes[0]);
+        } catch {
+          // No offline dataset downloaded; leave the previous results alone.
+        }
       } finally {
         setIsLoading(false);
       }
@@ -249,13 +261,20 @@ export default function HomePage() {
     try {
       const url = `/api/search?q=${encodeURIComponent(trimmed)}${targetType ? `&type=${targetType}` : ''}&limit=30`;
       const res = await fetch(url);
-      if (res.ok) {
-        const data = await res.json();
-        setResults(data.results || []);
-        if (data.results?.length > 0) setSelectedPlace(data.results[0]);
-      }
+      if (!res.ok) throw new Error(`Search failed (${res.status})`);
+      const data = await res.json();
+      setResults(data.results || []);
+      if (data.results?.length > 0) setSelectedPlace(data.results[0]);
     } catch (err) {
+      // As above: fall back to the downloaded dataset if there is one.
       console.error('Text search error:', err);
+      try {
+        const offlineRes = await searchOffline(trimmed, targetType, 25);
+        setResults(offlineRes);
+        if (offlineRes.length > 0) setSelectedPlace(offlineRes[0]);
+      } catch {
+        // No offline dataset downloaded; leave the previous results alone.
+      }
     } finally {
       setIsLoading(false);
     }
