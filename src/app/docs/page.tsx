@@ -1,13 +1,20 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useSyncExternalStore } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, Terminal, Send, Copy, Check, Code2, Database } from 'lucide-react';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { DATA_INFO } from '@/lib/appInfo';
 import { formatNumber } from '@/lib/format';
 
+// The origin this page is served from, so the docs show the real deployment URL
+// instead of a hard-coded dev host. Empty during server rendering.
+const noopSubscribe = () => () => {};
+const useOrigin = () =>
+  useSyncExternalStore(noopSubscribe, () => window.location.origin, () => '');
+
 export default function ApiDocsPage() {
+  const baseUrl = useOrigin();
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [activeTestResponse, setActiveTestResponse] = useState<Record<string, any>>({});
   const [isLoadingTest, setIsLoadingTest] = useState<Record<string, boolean>>({});
@@ -48,12 +55,12 @@ export default function ApiDocsPage() {
         { name: 'type', type: 'string', required: false, desc: 'Filter by place type: "all" | "town" | "ward" | "village_tract" | "village", or "postal" to look up by postal code (e.g. q=1501001)' },
         { name: 'limit', type: 'number', required: false, desc: 'Maximum number of results (default 25, max 100)' }
       ],
-      curlSnippet: `curl -s "http://localhost:3030/api/v1/search?q=Yangon&type=town&limit=5"`,
-      jsSnippet: `const res = await fetch('http://localhost:3030/api/v1/search?q=Yangon&type=town');
+      curlSnippet: `curl -s "${baseUrl}/api/v1/search?q=Yangon&type=town&limit=5"`,
+      jsSnippet: `const res = await fetch('${baseUrl}/api/v1/search?q=Yangon&type=town');
 const data = await res.json();
 console.log(data.results);`,
       pythonSnippet: `import requests
-res = requests.get('http://localhost:3030/api/v1/search', params={'q': 'Yangon', 'type': 'town'})
+res = requests.get('${baseUrl}/api/v1/search', params={'q': 'Yangon', 'type': 'town'})
 print(res.json()['results'])`
     },
     {
@@ -69,11 +76,11 @@ print(res.json()['results'])`
         { name: 'radius', type: 'number', required: false, desc: 'Search radius in kilometers (default 10, max 100)' },
         { name: 'limit', type: 'number', required: false, desc: 'Max results (default 20, max 50)' }
       ],
-      curlSnippet: `curl -s "http://localhost:3030/api/v1/nearby?lat=16.8661&lng=96.1951&radius=10"`,
-      jsSnippet: `const res = await fetch('http://localhost:3030/api/v1/nearby?lat=16.8661&lng=96.1951&radius=10');
+      curlSnippet: `curl -s "${baseUrl}/api/v1/nearby?lat=16.8661&lng=96.1951&radius=10"`,
+      jsSnippet: `const res = await fetch('${baseUrl}/api/v1/nearby?lat=16.8661&lng=96.1951&radius=10');
 const data = await res.json();`,
       pythonSnippet: `import requests
-res = requests.get('http://localhost:3030/api/v1/nearby', params={'lat': 16.8661, 'lng': 96.1951, 'radius': 10})
+res = requests.get('${baseUrl}/api/v1/nearby', params={'lat': 16.8661, 'lng': 96.1951, 'radius': 10})
 print(res.json()['results'])`
     },
     {
@@ -86,11 +93,11 @@ print(res.json()['results'])`
       parameters: [
         { name: 'code', type: 'string', required: true, desc: 'MIMU Place Code (e.g. "MMR013000777")' }
       ],
-      curlSnippet: `curl -s "http://localhost:3030/api/v1/pcode/MMR013000777"`,
-      jsSnippet: `const res = await fetch('http://localhost:3030/api/v1/pcode/MMR013000777');
+      curlSnippet: `curl -s "${baseUrl}/api/v1/pcode/MMR013000777"`,
+      jsSnippet: `const res = await fetch('${baseUrl}/api/v1/pcode/MMR013000777');
 const place = await res.json();`,
       pythonSnippet: `import requests
-res = requests.get('http://localhost:3030/api/v1/pcode/MMR013000777')
+res = requests.get('${baseUrl}/api/v1/pcode/MMR013000777')
 print(res.json())`
     },
     {
@@ -109,10 +116,10 @@ print(res.json())`
       parameters: [
         { name: 'items', type: 'array', required: true, desc: 'Array of objects with id, latitude, longitude' }
       ],
-      curlSnippet: `curl -s -X POST http://localhost:3030/api/v1/batch \\
+      curlSnippet: `curl -s -X POST ${baseUrl}/api/v1/batch \\
   -H "Content-Type: application/json" \\
   -d '{"items": [{"id": 1, "latitude": 16.8661, "longitude": 96.1951}]}'`,
-      jsSnippet: `const res = await fetch('http://localhost:3030/api/v1/batch', {
+      jsSnippet: `const res = await fetch('${baseUrl}/api/v1/batch', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({ items: [{ id: 1, latitude: 16.8661, longitude: 96.1951 }] })
@@ -120,7 +127,7 @@ print(res.json())`
 const data = await res.json();`,
       pythonSnippet: `import requests
 payload = {'items': [{'id': 1, 'latitude': 16.8661, 'longitude': 96.1951}]}
-res = requests.post('http://localhost:3030/api/v1/batch', json=payload)
+res = requests.post('${baseUrl}/api/v1/batch', json=payload)
 print(res.json())`
     },
     {
@@ -131,11 +138,11 @@ print(res.json())`
       sampleUrl: '/api/v1/stats',
       description: 'System statistics, total indexed places, and MIMU release info.',
       parameters: [],
-      curlSnippet: `curl -s "http://localhost:3030/api/v1/stats"`,
-      jsSnippet: `const res = await fetch('http://localhost:3030/api/v1/stats');
+      curlSnippet: `curl -s "${baseUrl}/api/v1/stats"`,
+      jsSnippet: `const res = await fetch('${baseUrl}/api/v1/stats');
 const stats = await res.json();`,
       pythonSnippet: `import requests
-res = requests.get('http://localhost:3030/api/v1/stats')
+res = requests.get('${baseUrl}/api/v1/stats')
 print(res.json())`
     }
   ];
@@ -185,7 +192,7 @@ print(res.json())`
             fontSize: '0.85rem'
           }}>
             <span style={{ color: 'var(--text-muted)' }}>Base URL:</span>
-            <span style={{ color: 'var(--accent-primary)', fontWeight: 600 }}>http://localhost:3030</span>
+            <span style={{ color: 'var(--accent-primary)', fontWeight: 600 }}>{baseUrl}</span>
           </div>
         </div>
 
